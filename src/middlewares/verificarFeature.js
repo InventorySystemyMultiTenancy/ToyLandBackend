@@ -1,7 +1,7 @@
-const PLANS = require("../config/plans");
-const { Empresa } = require("../models");
+import PLANS from "../config/plans.js";
+import { Empresa } from "../models/index.js";
 
-function verificarFeature(nomeFeature) {
+export default function verificarFeature(nomeFeature) {
   return async function (req, res, next) {
     // empresaId deve estar disponível no req (middleware de autenticação)
     const empresaId = req.empresaId || req.empresa?.id;
@@ -20,5 +20,3 @@ function verificarFeature(nomeFeature) {
     next();
   };
 }
-
-module.exports = verificarFeature;

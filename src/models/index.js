@@ -161,4 +161,5 @@ export {
   MovimentacaoEstoqueLoja,
   MovimentacaoEstoqueLojaProduto,
   AlertaIgnorado,
+  Empresa,
 };

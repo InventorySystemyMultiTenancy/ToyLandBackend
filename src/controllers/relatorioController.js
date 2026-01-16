@@ -36,15 +36,24 @@ export const dashboardRelatorio = async (req, res) => {
 
     // --- QUERY 4: PERFORMANCE POR MÁQUINA (Corrigido) ---
     // ...existing code...
-          attributes: ["id", "nome", "capacidadePadrao"],
+    // Aqui estava um erro de bloco: a chave de fechamento do 'attributes' não deve fechar o objeto principal.
+    // O correto é:
+    const performanceRaw = await Movimentacao.findAll({
+      attributes: [
+        [Sequelize.col("maquina.id"), "id"],
+        [Sequelize.col("maquina.nome"), "nome"],
+        [Sequelize.col("maquina.capacidadePadrao"), "capacidadePadrao"],
+        [Sequelize.fn("SUM", Sequelize.col("valorFaturado")), "faturamento"],
+      ],
+      include: [
+        {
+          model: Maquina,
+          as: "maquina",
+          attributes: [],
         },
       ],
       where: whereMovimentacao,
-      group: [
-        "maquina.id",
-        "maquina.nome",
-        "maquina.capacidadePadrao"
-      ],
+      group: ["maquina.id", "maquina.nome", "maquina.capacidadePadrao"],
       raw: true,
       nest: true,
     });
