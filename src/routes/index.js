@@ -10,10 +10,12 @@ import relatorioRoutes from "./relatorio.routes.js";
 import adminRoutes from "./admin.routes.js";
 import estoqueLojaRoutes from "./estoqueLoja.routes.js";
 import movimentacaoEstoqueLojaRoutes from "./movimentacaoEstoqueLoja.routes.js";
+import empresaRoutes from "./empresa.routes.js";
 
 const router = express.Router();
 // Rotas exclusivas do SUPER_ADMIN
 router.use("/superadmin", superadminRoutes);
+router.use("/empresas", empresaRoutes);
 
 router.use("/auth", authRoutes);
 router.use("/usuarios", usuarioRoutes);
