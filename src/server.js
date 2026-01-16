@@ -122,6 +122,21 @@ app.get("/debug/admin", async (req, res) => {
   });
 });
 
+// Debug endpoint para super admin
+app.get("/debug/superadmin", async (req, res) => {
+  const { Usuario } = await import("./models/index.js");
+  const superadmin = await Usuario.findOne({
+    where: { email: "superadmin@agarramais.com" },
+  });
+  res.json({
+    exists: !!superadmin,
+    email: superadmin?.email,
+    role: superadmin?.role,
+    ativo: superadmin?.ativo,
+    nome: superadmin?.nome,
+  });
+});
+
 // Routes
 app.use("/api", routes);
 
