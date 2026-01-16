@@ -64,7 +64,8 @@ const Usuario = sequelize.define(
         }
       },
     },
-
+  }
+);
 
 // Método para verificar senha
 Usuario.prototype.verificarSenha = async function (senha) {
