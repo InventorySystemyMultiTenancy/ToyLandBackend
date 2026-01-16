@@ -22,7 +22,7 @@ const PORT = process.env.PORT || 3001;
 app.use(
   helmet({
     contentSecurityPolicy: false, // Permitir recursos inline para a página de relatório
-  })
+  }),
 );
 
 // Configurar CORS para aceitar localhost e produção
@@ -56,7 +56,7 @@ app.use(
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 app.use(morgan("dev"));
 app.use(express.json());
@@ -76,7 +76,7 @@ app.get("/uploads/:empresaId/:tipo/:file", autenticar, (req, res) => {
     "uploads",
     req.params.empresaId,
     req.params.tipo,
-    req.params.file
+    req.params.file,
   );
   if (!fs.existsSync(filePath)) {
     return res.status(404).json({ error: "Arquivo não encontrado" });
@@ -165,6 +165,27 @@ const startServer = async () => {
         ativo: true,
       });
       console.log("✅ Usuário admin criado:", adminEmail);
+    }
+
+    // Criar super admin se não existir
+    const superAdminEmail =
+      process.env.SUPER_ADMIN_EMAIL || "superadmin@agarramais.com";
+    const superAdminExistente = await Usuario.findOne({
+      where: { email: superAdminEmail },
+    });
+
+    if (!superAdminExistente) {
+      const superAdminPassword =
+        process.env.SUPER_ADMIN_PASSWORD || "SuperAdmin@123";
+      await Usuario.create({
+        nome: "Super Administrador",
+        email: superAdminEmail,
+        senha: superAdminPassword,
+        role: "SUPER_ADMIN",
+        telefone: "(11) 99999-9999",
+        ativo: true,
+      });
+      console.log("✅ Usuário SUPER_ADMIN criado:", superAdminEmail);
     }
 
     app.listen(PORT, "0.0.0.0", () => {

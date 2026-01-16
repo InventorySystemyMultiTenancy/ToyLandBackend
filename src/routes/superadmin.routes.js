@@ -1,8 +1,12 @@
 import express from "express";
 import { autenticar, verificarSuperAdmin } from "../middlewares/auth.js";
 import { Empresa } from "../models/index.js";
+import { criarNovaEmpresa } from "../controllers/saasAdminController.js";
 
 const router = express.Router();
+
+// Criar nova empresa
+router.post("/empresas", autenticar, verificarSuperAdmin, criarNovaEmpresa);
 
 // Listar todas as empresas
 router.get("/empresas", autenticar, verificarSuperAdmin, async (req, res) => {
@@ -20,7 +24,7 @@ router.get(
     if (!empresa)
       return res.status(404).json({ error: "Empresa não encontrada" });
     res.json(empresa);
-  }
+  },
 );
 
 // Alterar plano da empresa
@@ -36,7 +40,7 @@ router.patch(
     empresa.plano = plano;
     await empresa.save();
     res.json({ success: true, empresa });
-  }
+  },
 );
 
 // Ativar/desativar empresa
@@ -52,7 +56,7 @@ router.patch(
     empresa.ativo = !!ativo;
     await empresa.save();
     res.json({ success: true, empresa });
-  }
+  },
 );
 
 export default router;
