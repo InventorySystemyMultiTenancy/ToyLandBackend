@@ -1,5 +1,5 @@
-const { DataTypes } = require("sequelize");
-const { sequelize } = require("../database/connection.js");
+import { DataTypes } from "sequelize";
+import { sequelize } from "../database/connection.js";
 
 const Empresa = sequelize.define(
   "Empresa",
@@ -64,4 +64,4 @@ Empresa.associate = (models) => {
   Empresa.hasMany(models.Usuario, { foreignKey: "empresaId" });
 };
 
-module.exports = Empresa;
+export default Empresa;
