@@ -13,11 +13,10 @@ const Usuario = sequelize.define(
     nome: {
       type: DataTypes.STRING(100),
       allowNull: false,
-    },
     email: {
       type: DataTypes.STRING(100),
       allowNull: false,
-      unique: true,
+      // unique removido, agora índice composto
       validate: {
         isEmail: true,
       },
@@ -43,6 +42,15 @@ const Usuario = sequelize.define(
   {
     tableName: "usuarios",
     timestamps: true,
+    indexes: [
+      {
+        unique: true,
+        fields: ["email", "empresaId"],
+      },
+      {
+        fields: ["empresaId"],
+      },
+    ],
     hooks: {
       beforeCreate: async (usuario) => {
         if (usuario.senha) {
@@ -57,6 +65,7 @@ const Usuario = sequelize.define(
     },
   }
 );
+    email: {
 
 // Método para verificar senha
 Usuario.prototype.verificarSenha = async function (senha) {

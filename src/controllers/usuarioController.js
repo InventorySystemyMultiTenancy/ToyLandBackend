@@ -86,10 +86,11 @@ export const criarUsuario = async (req, res) => {
         .json({ error: "Nome, email e senha são obrigatórios" });
     }
 
-    // Verificar se email já existe
-    const usuarioExistente = await Usuario.findOne({ where: { email } });
-    if (usuarioExistente) {
-      return res.status(400).json({ error: "Email já cadastrado" });
+    // Impedir criação de SUPER_ADMIN por admin comum
+    if (role === "SUPER_ADMIN") {
+      return res
+        .status(403)
+        .json({ error: "Não é permitido criar usuários SUPER_ADMIN" });
     }
 
     // Validar role
@@ -100,13 +101,29 @@ export const criarUsuario = async (req, res) => {
         .json({ error: "Role inválida. Use ADMIN ou FUNCIONARIO" });
     }
 
-    // Criar usuário
+    // Verificar se email já existe para esta empresa (ou global para SUPER_ADMIN)
+    let usuarioExistente;
+    if (req.usuario.role === "SUPER_ADMIN") {
+      usuarioExistente = await Usuario.findOne({ where: { email } });
+    } else {
+      usuarioExistente = await Usuario.findOne({
+        where: { email, empresaId: req.empresaId },
+      });
+    }
+    if (usuarioExistente) {
+      return res.status(400).json({ error: "Email já cadastrado" });
+    }
+
+    // SUPER_ADMIN pode criar usuário em qualquer empresa
+    const empresaId =
+      req.usuario.role === "SUPER_ADMIN" ? req.body.empresaId : req.empresaId;
     const usuario = await Usuario.create({
       nome,
       email,
       senha,
       telefone,
       role,
+      empresaId,
     });
 
     // Se for funcionário e tiver lojas permitidas, criar permissões
@@ -124,7 +141,6 @@ export const criarUsuario = async (req, res) => {
           registrarMovimentacao: true,
         },
       }));
-
       await UsuarioLoja.bulkCreate(permissoes);
     }
 

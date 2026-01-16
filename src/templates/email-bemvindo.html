@@ -1,0 +1,44 @@
+<!-- Exemplo de template de email com variáveis para handlebars ou string replacement -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{subject}}</title>
+    <style>
+      .header {
+        background: {{corPrincipal}};
+        padding: 24px 0;
+        text-align: center;
+      }
+      .logo {
+        max-width: 180px;
+        margin: 0 auto;
+      }
+      .content {
+        padding: 32px 24px;
+        font-family: Arial, sans-serif;
+        color: #222;
+        background: #fff;
+      }
+      .footer {
+        text-align: center;
+        color: #888;
+        font-size: 12px;
+        margin-top: 32px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <img class="logo" src="{{logoUrl}}" alt="Logo {{nomeEmpresa}}" />
+    </div>
+    <div class="content">
+      <h2>Olá, {{nomeUsuario}}!</h2>
+      <p>Bem-vindo à <b>{{nomeEmpresa}}</b>!</p>
+      <p>{{mensagem}}</p>
+    </div>
+    <div class="footer">
+      &copy; {{ano}} {{nomeEmpresa}}. Todos os direitos reservados.
+    </div>
+  </body>
+</html>

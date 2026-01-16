@@ -1,14 +1,6 @@
-import express from "express";
-import authRoutes from "./auth.routes.js";
-import usuarioRoutes from "./usuario.routes.js";
-import lojaRoutes from "./loja.routes.js";
-import maquinaRoutes from "./maquina.routes.js";
-import produtoRoutes from "./produto.routes.js";
-import movimentacaoRoutes from "./movimentacao.routes.js";
-import relatorioRoutes from "./relatorio.routes.js";
-import adminRoutes from "./admin.routes.js";
-import estoqueLojaRoutes from "./estoqueLoja.routes.js";
-import movimentacaoEstoqueLojaRoutes from "./movimentacaoEstoqueLoja.routes.js";
+import superadminRoutes from "./superadmin.routes.js";
+// Rotas exclusivas do SUPER_ADMIN
+router.use("/superadmin", superadminRoutes);
 const router = express.Router();
 
 router.use("/auth", authRoutes);

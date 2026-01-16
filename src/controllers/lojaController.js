@@ -3,41 +3,19 @@ import { Loja, Maquina, UsuarioLoja } from "../models/index.js";
 // US04 - Listar todas as lojas
 export const listarLojas = async (req, res) => {
   try {
-    let lojas;
-
-    // Se for ADMIN, vê todas as lojas
-    if (req.usuario.role === "ADMIN") {
-      lojas = await Loja.findAll({
-        include: [
-          {
-            model: Maquina,
-            as: "maquinas",
-            attributes: ["id", "codigo", "nome", "tipo", "ativo"],
-          },
-        ],
-        order: [["nome", "ASC"]],
-      });
-    } else {
-      // Funcionário vê apenas lojas permitidas
-      const permissoes = await UsuarioLoja.findAll({
-        where: { usuarioId: req.usuario.id },
-        include: [
-          {
-            model: Loja,
-            include: [
-              {
-                model: Maquina,
-                as: "maquinas",
-                attributes: ["id", "codigo", "nome", "tipo", "ativo"],
-              },
-            ],
-          },
-        ],
-      });
-
-      lojas = permissoes.map((p) => p.Loja);
-    }
-
+    const where =
+      req.usuario.role === "SUPER_ADMIN" ? {} : { empresaId: req.empresaId };
+    const lojas = await Loja.findAll({
+      where,
+      include: [
+        {
+          model: Maquina,
+          as: "maquinas",
+          attributes: ["id", "codigo", "nome", "tipo", "ativo"],
+        },
+      ],
+      order: [["nome", "ASC"]],
+    });
     res.json(lojas);
   } catch (error) {
     console.error("Erro ao listar lojas:", error);
@@ -48,7 +26,12 @@ export const listarLojas = async (req, res) => {
 // US04 - Obter loja por ID
 export const obterLoja = async (req, res) => {
   try {
-    const loja = await Loja.findByPk(req.params.id, {
+    const where =
+      req.usuario.role === "SUPER_ADMIN"
+        ? { id: req.params.id }
+        : { id: req.params.id, empresaId: req.empresaId };
+    const loja = await Loja.findOne({
+      where,
       include: [
         {
           model: Maquina,
@@ -56,11 +39,9 @@ export const obterLoja = async (req, res) => {
         },
       ],
     });
-
     if (!loja) {
       return res.status(404).json({ error: "Loja não encontrada" });
     }
-
     res.json(loja);
   } catch (error) {
     console.error("Erro ao obter loja:", error);
@@ -77,6 +58,8 @@ export const criarLoja = async (req, res) => {
       return res.status(400).json({ error: "Nome da loja é obrigatório" });
     }
 
+    const empresaId =
+      req.usuario.role === "SUPER_ADMIN" ? req.body.empresaId : req.empresaId;
     const loja = await Loja.create({
       nome,
       endereco,
@@ -84,6 +67,7 @@ export const criarLoja = async (req, res) => {
       estado,
       responsavel,
       telefone,
+      empresaId,
     });
 
     res.locals.entityId = loja.id;
@@ -97,15 +81,18 @@ export const criarLoja = async (req, res) => {
 // US04 - Atualizar loja
 export const atualizarLoja = async (req, res) => {
   try {
-    const loja = await Loja.findByPk(req.params.id);
-
+    const where =
+      req.usuario.role === "SUPER_ADMIN"
+        ? { id: req.params.id }
+        : { id: req.params.id, empresaId: req.empresaId };
+    const loja = await Loja.findOne({
+      where,
+    });
     if (!loja) {
       return res.status(404).json({ error: "Loja não encontrada" });
     }
-
     const { nome, endereco, cidade, estado, responsavel, telefone, ativo } =
       req.body;
-
     await loja.update({
       nome: nome ?? loja.nome,
       endereco: endereco ?? loja.endereco,
@@ -115,7 +102,6 @@ export const atualizarLoja = async (req, res) => {
       telefone: telefone ?? loja.telefone,
       ativo: ativo ?? loja.ativo,
     });
-
     res.json(loja);
   } catch (error) {
     console.error("Erro ao atualizar loja:", error);
@@ -126,12 +112,16 @@ export const atualizarLoja = async (req, res) => {
 // US04 - Deletar loja
 export const deletarLoja = async (req, res) => {
   try {
-    const loja = await Loja.findByPk(req.params.id);
-
+    const where =
+      req.usuario.role === "SUPER_ADMIN"
+        ? { id: req.params.id }
+        : { id: req.params.id, empresaId: req.empresaId };
+    const loja = await Loja.findOne({
+      where,
+    });
     if (!loja) {
       return res.status(404).json({ error: "Loja não encontrada" });
     }
-
     // Verificar se já está inativa (segunda tentativa = hard delete)
     if (!loja.ativo) {
       // Hard delete - deletar permanentemente
@@ -139,7 +129,6 @@ export const deletarLoja = async (req, res) => {
       await loja.destroy();
       return res.json({ message: "Loja deletada permanentemente" });
     }
-
     // Primeira tentativa: Soft delete (marcar como inativo)
     await loja.update({ ativo: false });
     res.json({ message: "Loja desativada com sucesso" });

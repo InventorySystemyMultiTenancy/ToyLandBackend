@@ -37,10 +37,19 @@ const Loja = sequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
+    empresaId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: "empresas",
+        key: "id",
+      },
+    },
   },
   {
     tableName: "lojas",
     timestamps: true,
+    indexes: [{ fields: ["empresaId"] }],
   }
 );
 

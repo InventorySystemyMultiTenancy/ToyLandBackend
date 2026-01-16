@@ -1,3 +1,14 @@
+// Middleware para proteger rotas de super admin (gestão SaaS)
+export const verificarSuperAdmin = (req, res, next) => {
+  // Exemplo: flag isSuperAdmin ou role SUPERADMIN
+  if (
+    req.usuario &&
+    (req.usuario.isSuperAdmin === true || req.usuario.role === "SUPERADMIN")
+  ) {
+    return next();
+  }
+  return res.status(403).json({ error: "Acesso restrito ao super admin." });
+};
 import jwt from "jsonwebtoken";
 import { Usuario } from "../models/index.js";
 import LogAtividade from "../models/LogAtividade.js";
@@ -12,7 +23,10 @@ export const autenticar = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const usuario = await Usuario.findByPk(decoded.id);
+    // Carrega o usuário e a associação empresa
+    const usuario = await Usuario.findByPk(decoded.id, {
+      include: [{ association: "empresa" }],
+    });
 
     if (!usuario || !usuario.ativo) {
       return res
@@ -20,7 +34,15 @@ export const autenticar = async (req, res, next) => {
         .json({ error: "Usuário não encontrado ou inativo" });
     }
 
+    // Verifica se a empresa está ativa
+    if (!usuario.empresa || usuario.empresa.ativo === false) {
+      return res
+        .status(403)
+        .json({ error: "Empresa inativa ou não encontrada" });
+    }
+
     req.usuario = usuario;
+    req.empresaId = usuario.empresaId;
     next();
   } catch (error) {
     return res.status(401).json({ error: "Token inválido ou expirado" });

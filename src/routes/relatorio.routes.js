@@ -10,6 +10,7 @@ import {
 } from "../controllers/relatorioController.js";
 import { alertasAbastecimentoIncompleto } from "../controllers/movimentacaoController.js";
 import { autenticar, autorizarRole } from "../middlewares/auth.js";
+import verificarFeature from "../middlewares/verificarFeature.js";
 
 const router = express.Router();
 
@@ -54,6 +55,7 @@ router.get(
   "/dashboard",
   autenticar,
   autorizarRole("ADMIN"),
+  verificarFeature("relatorios_avancados"),
   dashboardRelatorio
 );
 router.get(

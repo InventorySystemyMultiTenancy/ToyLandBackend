@@ -125,10 +125,22 @@ const Movimentacao = sequelize.define(
       allowNull: true,
       comment: "fichas / sairam (se sairam > 0)",
     },
+    empresaId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: "empresas",
+        key: "id",
+      },
+    },
   },
   {
     tableName: "movimentacoes",
     timestamps: true,
+    indexes: [
+      { fields: ["empresaId"] },
+      { fields: ["empresaId", "dataColeta"] },
+    ],
     hooks: {
       beforeSave: async (movimentacao) => {
         // Corrige cálculo para movimentações normais (não retirada de estoque)

@@ -10,7 +10,23 @@ import EstoqueLoja from "./EstoqueLoja.js";
 import MovimentacaoEstoqueLoja from "./MovimentacaoEstoqueLoja.js";
 import MovimentacaoEstoqueLojaProduto from "./MovimentacaoEstoqueLojaProduto.js";
 import AlertaIgnorado from "./AlertaIgnorado.js";
+import Empresa from "./Empresa.js";
 
+// Multi-tenancy: Relacionamentos Empresa
+Empresa.hasMany(Usuario, { foreignKey: "empresaId", as: "usuarios" });
+Usuario.belongsTo(Empresa, { foreignKey: "empresaId", as: "empresa" });
+
+Empresa.hasMany(Loja, { foreignKey: "empresaId", as: "lojas" });
+Loja.belongsTo(Empresa, { foreignKey: "empresaId", as: "empresa" });
+
+Empresa.hasMany(Produto, { foreignKey: "empresaId", as: "produtos" });
+Produto.belongsTo(Empresa, { foreignKey: "empresaId", as: "empresa" });
+
+Empresa.hasMany(Maquina, { foreignKey: "empresaId", as: "maquinas" });
+Maquina.belongsTo(Empresa, { foreignKey: "empresaId", as: "empresa" });
+
+Empresa.hasMany(Movimentacao, { foreignKey: "empresaId", as: "movimentacoes" });
+Movimentacao.belongsTo(Empresa, { foreignKey: "empresaId", as: "empresa" });
 // Relacionamentos
 MovimentacaoEstoqueLoja.belongsTo(Loja, { foreignKey: "lojaId", as: "loja" });
 Loja.hasMany(MovimentacaoEstoqueLoja, {

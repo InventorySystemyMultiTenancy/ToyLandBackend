@@ -11,6 +11,11 @@ import { Sequelize } from "sequelize";
 export const dashboardRelatorio = async (req, res) => {
   try {
     const { lojaId, dataInicio, dataFim } = req.query;
+    // Buscar configurações da empresa
+    const { Empresa } = await import("../models/index.js");
+    const empresa = await Empresa.findByPk(req.empresaId);
+
+    // ...existing code...
 
     // 1. Configuração de Datas
     const fim = dataFim ? new Date(`${dataFim}T23:59:59`) : new Date();
@@ -18,106 +23,19 @@ export const dashboardRelatorio = async (req, res) => {
       ? new Date(`${dataInicio}T00:00:00`)
       : new Date(new Date().setDate(fim.getDate() - 30));
 
-    // 2. Filtros
-    const whereMovimentacao = {
-      dataColeta: { [Op.between]: [inicio, fim] },
-    };
-
-    const whereMaquina = {};
-    if (lojaId) whereMaquina.lojaId = lojaId;
+    // ...existing code...
 
     // --- QUERY 1: TOTAIS GERAIS ---
-    const totaisRaw = await Movimentacao.findAll({
-      attributes: [
-        [fn("SUM", col("fichas")), "totalFichas"],
-        [fn("SUM", col("sairam")), "totalSairam"],
-        [fn("SUM", col("valorFaturado")), "faturamentoTotal"],
-      ],
-      include: [
-        {
-          model: Maquina,
-          as: "maquina",
-          where: whereMaquina,
-          attributes: [],
-        },
-      ],
-      where: whereMovimentacao,
-      raw: true,
-    });
-
-    const totaisDados = totaisRaw[0] || {};
-    const faturamento = parseFloat(totaisDados.faturamentoTotal || 0);
-    const saidas = parseInt(totaisDados.totalSairam || 0);
-    const fichas = parseInt(totaisDados.totalFichas || 0);
+    // ...existing code...
 
     // --- QUERY 2: CUSTO TOTAL ---
-    const itensVendidos = await MovimentacaoProduto.findAll({
-      attributes: ["quantidadeSaiu"],
-      include: [
-        {
-          model: Produto,
-          as: "produto",
-          attributes: ["custoUnitario"],
-        },
-        {
-          model: Movimentacao,
-          attributes: [],
-          where: whereMovimentacao,
-          include: [
-            {
-              model: Maquina,
-              as: "maquina",
-              where: whereMaquina,
-              attributes: [],
-            },
-          ],
-        },
-      ],
-      raw: true,
-      nest: true,
-    });
-
-    const custoTotal = itensVendidos.reduce((acc, item) => {
-      const qtd = item.quantidadeSaiu || 0;
-      const custo = parseFloat(item.produto?.custoUnitario || 0);
-      return acc + qtd * custo;
-    }, 0);
-
-    const lucro = faturamento - custoTotal;
+    // ...existing code...
 
     // --- QUERY 3: GRÁFICO FINANCEIRO ---
-    const timelineRaw = await Movimentacao.findAll({
-      attributes: [
-        [fn("DATE", col("dataColeta")), "data"],
-        [fn("SUM", col("valorFaturado")), "faturamento"],
-      ],
-      include: [
-        {
-          model: Maquina,
-          as: "maquina",
-          where: whereMaquina,
-          attributes: [],
-        },
-      ],
-      where: whereMovimentacao,
-      group: [fn("DATE", col("dataColeta"))],
-      order: [[fn("DATE", col("dataColeta")), "ASC"]],
-      raw: true,
-    });
+    // ...existing code...
 
     // --- QUERY 4: PERFORMANCE POR MÁQUINA (Corrigido) ---
-    // Buscamos dados financeiros agregados
-    const performanceRaw = await Movimentacao.findAll({
-      attributes: [
-        [col("maquina.nome"), "nome"],
-        [fn("SUM", col("valorFaturado")), "faturamento"],
-      ],
-      include: [
-        {
-          model: Maquina,
-          as: "maquina",
-          where: whereMaquina,
-          // REMOVIDO 'estoqueAtual' DAQUI
+    // ...existing code...
           attributes: ["id", "nome", "capacidadePadrao"],
         },
       ],
@@ -813,6 +731,7 @@ export const relatorioImpressao = async (req, res) => {
     }));
 
     res.json({
+      // ...existing code...
       loja: {
         id: loja.id,
         nome: loja.nome,
@@ -843,6 +762,7 @@ export const relatorioImpressao = async (req, res) => {
         quantidade: p.quantidade,
       })),
       maquinas: maquinasDetalhadas,
+      empresaConfig: empresa?.configuracoes || {},
     });
   } catch (error) {
     console.error("Erro ao gerar relatório de impressão:", error);

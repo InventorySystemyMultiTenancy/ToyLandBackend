@@ -12,7 +12,7 @@ const Produto = sequelize.define(
     codigo: {
       type: DataTypes.STRING(50),
       allowNull: true,
-      unique: true,
+      // unique removido, agora índice composto
       comment: "Código do produto para identificação",
     },
     nome: {
@@ -70,10 +70,27 @@ const Produto = sequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
+    empresaId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: "empresas",
+        key: "id",
+      },
+    },
   },
   {
     tableName: "produtos",
     timestamps: true,
+    indexes: [
+      {
+        unique: true,
+        fields: ["codigo", "empresaId"],
+      },
+      {
+        fields: ["empresaId"],
+      },
+    ],
   }
 );
 

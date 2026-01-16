@@ -107,10 +107,19 @@ const Maquina = sequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
+    empresaId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: "empresas",
+        key: "id",
+      },
+    },
   },
   {
     tableName: "maquinas",
     timestamps: true,
+    indexes: [{ fields: ["empresaId"] }],
   }
 );
 

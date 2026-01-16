@@ -4,9 +4,11 @@ import helmet from "helmet";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import { sequelize } from "./database/connection.js";
 import routes from "./routes/index.js";
+import { autenticar } from "./middlewares/auth.js";
 
 dotenv.config();
 
@@ -56,6 +58,25 @@ app.use(express.urlencoded({ extended: true }));
 
 // Servir arquivos estáticos da pasta public
 app.use("/public", express.static(path.join(__dirname, "..", "public")));
+
+// Rota protegida para servir arquivos de uploads multi-tenant
+app.get("/uploads/:empresaId/:tipo/:file", autenticar, (req, res) => {
+  if (req.empresaId !== req.params.empresaId) {
+    return res.status(403).json({ error: "Acesso negado" });
+  }
+  const filePath = path.join(
+    __dirname,
+    "..",
+    "uploads",
+    req.params.empresaId,
+    req.params.tipo,
+    req.params.file
+  );
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: "Arquivo não encontrado" });
+  }
+  res.sendFile(path.resolve(filePath));
+});
 
 // Root route
 app.get("/", (req, res) => {
