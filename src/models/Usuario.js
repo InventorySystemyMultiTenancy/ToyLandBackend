@@ -13,6 +13,7 @@ const Usuario = sequelize.define(
     nome: {
       type: DataTypes.STRING(100),
       allowNull: false,
+    },
     email: {
       type: DataTypes.STRING(100),
       allowNull: false,
@@ -63,9 +64,7 @@ const Usuario = sequelize.define(
         }
       },
     },
-  }
-);
-    email: {
+
 
 // Método para verificar senha
 Usuario.prototype.verificarSenha = async function (senha) {
