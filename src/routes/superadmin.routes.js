@@ -1,7 +1,6 @@
 import express from "express";
 import { autenticar, verificarSuperAdmin } from "../middlewares/auth.js";
-import models from "../models/index.js";
-const { Empresa } = models;
+import { Empresa } from "../models/index.js";
 
 const router = express.Router();
 
