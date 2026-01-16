@@ -53,6 +53,12 @@ const Empresa = sequelize.define(
       comment:
         "Preferências como logoUrl, corPrimaria, textoRodapeRelatorio, fusoHorario",
     },
+    subdomain: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      comment: "Subdomínio da empresa para multi-tenancy",
+    },
   },
   {
     tableName: "empresas",
