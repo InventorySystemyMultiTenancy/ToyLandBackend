@@ -1,4 +1,5 @@
-import { Empresa, Usuario, sequelize } from "../models/index.js";
+import { Empresa, Usuario } from "../models/index.js";
+import { sequelize } from "../database/connection.js";
 import bcrypt from "bcryptjs";
 
 // Função auxiliar para gerar subdomain a partir do nome
