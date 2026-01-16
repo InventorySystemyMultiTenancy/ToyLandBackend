@@ -1,10 +1,7 @@
 // Middleware para proteger rotas de super admin (gestão SaaS)
 export const verificarSuperAdmin = (req, res, next) => {
-  // Exemplo: flag isSuperAdmin ou role SUPERADMIN
-  if (
-    req.usuario &&
-    (req.usuario.isSuperAdmin === true || req.usuario.role === "SUPERADMIN")
-  ) {
+  // Verifica se o usuário tem role SUPER_ADMIN
+  if (req.usuario && req.usuario.role === "SUPER_ADMIN") {
     return next();
   }
   return res.status(403).json({ error: "Acesso restrito ao super admin." });
@@ -34,11 +31,14 @@ export const autenticar = async (req, res, next) => {
         .json({ error: "Usuário não encontrado ou inativo" });
     }
 
-    // Verifica se a empresa está ativa
-    if (!usuario.empresa || usuario.empresa.ativo === false) {
-      return res
-        .status(403)
-        .json({ error: "Empresa inativa ou não encontrada" });
+    // SUPER_ADMIN não precisa ter empresa
+    if (usuario.role !== "SUPER_ADMIN") {
+      // Verifica se a empresa está ativa
+      if (!usuario.empresa || usuario.empresa.ativo === false) {
+        return res
+          .status(403)
+          .json({ error: "Empresa inativa ou não encontrada" });
+      }
     }
 
     req.usuario = usuario;
