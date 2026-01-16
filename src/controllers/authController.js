@@ -4,13 +4,20 @@ import { Usuario, LogAtividade } from "../models/index.js";
 // US01 - Login
 export const login = async (req, res) => {
   try {
-    const { email, senha } = req.body;
+    const { email, senha, subdomain } = req.body;
 
     if (!email || !senha) {
       return res.status(400).json({ error: "Email e senha são obrigatórios" });
     }
 
     const usuario = await Usuario.findOne({ where: { email } });
+
+    // Se o login for pelo subdomínio superadminpage, só permite SUPER_ADMIN
+    if (subdomain === "superadminpage" && usuario?.role !== "SUPER_ADMIN") {
+      return res
+        .status(403)
+        .json({ error: "Acesso restrito ao SUPER_ADMIN neste subdomínio." });
+    }
 
     if (!usuario) {
       return res.status(401).json({ error: "Credenciais inválidas" });
