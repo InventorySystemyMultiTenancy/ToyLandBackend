@@ -40,8 +40,14 @@ app.use(
       // Permitir requisições sem origin (como mobile apps, Postman, curl)
       if (!origin) return callback(null, true);
 
-      // Se estiver na lista de origens permitidas ou for "*"
-      if (allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
+      // Permitir qualquer subdomínio de selfmachine.com.br
+      const selfmachineRegex =
+        /^https?:\/\/[a-zA-Z0-9-]+\.selfmachine\.com\.br(:\d+)?$/;
+      if (
+        allowedOrigins.includes(origin) ||
+        allowedOrigins.includes("*") ||
+        selfmachineRegex.test(origin)
+      ) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
