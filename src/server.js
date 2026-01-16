@@ -134,6 +134,21 @@ app.get("/debug/superadmin", async (req, res) => {
     role: superadmin?.role,
     ativo: superadmin?.ativo,
     nome: superadmin?.nome,
+    empresaId: superadmin?.empresaId,
+  });
+});
+
+// Debug endpoint para verificar token
+app.get("/debug/verify-token", autenticar, async (req, res) => {
+  res.json({
+    authenticated: true,
+    usuario: {
+      id: req.usuario.id,
+      nome: req.usuario.nome,
+      email: req.usuario.email,
+      role: req.usuario.role,
+      empresaId: req.usuario.empresaId,
+    },
   });
 });
 
