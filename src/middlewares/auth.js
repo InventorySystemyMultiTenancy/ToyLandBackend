@@ -71,6 +71,12 @@ export const autorizarRole = (...rolesPermitidas) => {
     console.log(`   Role do usuário: ${req.usuario?.role}`);
     console.log(`   Roles permitidas: ${rolesPermitidas.join(", ")}`);
 
+    // SUPER_ADMIN tem acesso total
+    if (req.usuario?.role === "SUPER_ADMIN") {
+      console.log("✅ SUPER_ADMIN: acesso total concedido");
+      return next();
+    }
+
     if (!rolesPermitidas.includes(req.usuario.role)) {
       console.log(
         `❌ Acesso negado - Role ${req.usuario.role} não está em [${rolesPermitidas.join(", ")}]`,
