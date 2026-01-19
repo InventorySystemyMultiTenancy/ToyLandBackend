@@ -20,9 +20,10 @@ export const autenticar = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    // Carrega o usuário e a associação empresa
+
+    // Carrega o usuário e a associação empresa (opcional para SUPER_ADMIN)
     const usuario = await Usuario.findByPk(decoded.id, {
-      include: [{ association: "empresa" }],
+      include: [{ association: "empresa", required: false }],
     });
 
     if (!usuario || !usuario.ativo) {
@@ -45,6 +46,7 @@ export const autenticar = async (req, res, next) => {
     req.empresaId = usuario.empresaId;
     next();
   } catch (error) {
+    console.error("Erro no middleware de autenticação:", error);
     return res.status(401).json({ error: "Token inválido ou expirado" });
   }
 };
