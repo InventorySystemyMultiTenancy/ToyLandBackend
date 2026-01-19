@@ -78,10 +78,10 @@ export const obterUsuario = async (req, res) => {
 export const criarUsuario = async (req, res) => {
   try {
     const { nome, email, senha, telefone, role, lojasPermitidas } = req.body;
-    console.log('Dados recebidos para criar usuário:', req.body);
+    console.log("Dados recebidos para criar usuário:", req.body);
 
     if (!nome || !email || !senha) {
-      console.warn('Faltando campos obrigatórios:', { nome, email, senha });
+      console.warn("Faltando campos obrigatórios:", { nome, email, senha });
       return res
         .status(400)
         .json({ error: "Nome, email e senha são obrigatórios" });
@@ -89,7 +89,7 @@ export const criarUsuario = async (req, res) => {
 
     // Impedir criação de SUPER_ADMIN por admin comum
     if (role === "SUPER_ADMIN") {
-      console.warn('Tentativa de criar SUPER_ADMIN:', req.body);
+      console.warn("Tentativa de criar SUPER_ADMIN:", req.body);
       return res
         .status(403)
         .json({ error: "Não é permitido criar usuários SUPER_ADMIN" });
@@ -98,13 +98,13 @@ export const criarUsuario = async (req, res) => {
     // Validar role
     const roleValida = ["ADMIN", "FUNCIONARIO"].includes(role);
     if (!roleValida) {
-      console.warn('Role inválida recebida:', role);
+      console.warn("Role inválida recebida:", role);
       return res
         .status(400)
         .json({ error: "Role inválida. Use ADMIN ou FUNCIONARIO" });
     }
 
-    // Verificar se email já existe para esta empresa (ou global para SUPER_ADMIN)
+    // Verificar se email já existe
     let usuarioExistente;
     if (req.usuario.role === "SUPER_ADMIN") {
       usuarioExistente = await Usuario.findOne({ where: { email } });
@@ -114,113 +114,98 @@ export const criarUsuario = async (req, res) => {
       });
     }
     if (usuarioExistente) {
-      console.warn('Email já cadastrado:', email);
+      console.warn("Email já cadastrado:", email);
       return res.status(400).json({ error: "Email já cadastrado" });
     }
 
-    // SUPER_ADMIN pode criar usuário em qualquer empresa
+    // Definir empresaId
     let empresaId = req.empresaId;
     if (req.empresaId === "000001") {
       if (!req.body.empresaId) {
-        console.warn('SUPER_ADMIN não informou empresaId ao criar usuário');
-        return res
-          .status(400)
-          .json({
-            error: "SUPER_ADMIN deve informar empresaId ao criar usuário",
-          });
+        console.warn("SUPER_ADMIN não informou empresaId ao criar usuário");
+        return res.status(400).json({
+          error: "SUPER_ADMIN deve informar empresaId ao criar usuário",
+        });
       }
       empresaId = req.body.empresaId;
     }
-    try {
-      const usuario = await Usuario.create({
-        nome,
-        email,
-        senha,
-        telefone,
-        role,
-        empresaId,
-      });
 
-    // Se for funcionário e tiver lojas permitidas, criar permissões
-      if (
-        role === "FUNCIONARIO" &&
-        lojasPermitidas &&
-        lojasPermitidas.length > 0
-      ) {
-        const permissoes = lojasPermitidas.map((lojaId) => ({
-          usuarioId: usuario.id,
-          lojaId,
-          permissoes: {
-            visualizar: true,
-            editar: false,
-            registrarMovimentacao: true,
-          },
-        }));
-        await UsuarioLoja.bulkCreate(permissoes);
-      }
-
-      // Buscar usuário completo com permissões
-      const usuarioCompleto = await Usuario.findByPk(usuario.id, {
-        include: [
-          {
-            model: UsuarioLoja,
-        const usuario = await Usuario.create({
-          nome,
-          email,
-          senha,
-          telefone,
-          role,
-          empresaId,
-        });
-
-        // Se for funcionário e tiver lojas permitidas, criar permissões
-        if (
-          role === "FUNCIONARIO" &&
-          lojasPermitidas &&
-          lojasPermitidas.length > 0
-        ) {
-          const permissoes = lojasPermitidas.map((lojaId) => ({
-            usuarioId: usuario.id,
-            lojaId,
-            permissoes: {
-              visualizar: true,
-              editar: false,
-              registrarMovimentacao: true,
-            },
-          }));
-          await UsuarioLoja.bulkCreate(permissoes);
-        }
-
-        // Buscar usuário completo com permissões
-        const usuarioCompleto = await Usuario.findByPk(usuario.id, {
-          include: [
-            {
-              model: UsuarioLoja,
-              as: "permissoesLojas",
-              include: [
-                {
-                  model: Loja,
-                  attributes: ["id", "nome"],
-                },
-              ],
-            },
-          ],
-        });
-
-        res.locals.entityId = usuario.id;
-        res.status(201).json(usuarioCompleto);
-      senha: senha ?? usuario.senha, // O hook beforeUpdate fará o hash se mudou
-      telefone: telefone ?? usuario.telefone,
-      role: role ?? usuario.role,
-      ativo: ativo ?? usuario.ativo,
+    // CRIAÇÃO DO USUÁRIO
+    const usuario = await Usuario.create({
+      nome,
+      email,
+      senha,
+      telefone,
+      role,
+      empresaId,
     });
 
-    // Se mudou para FUNCIONARIO ou atualizou lojas permitidas
+    // Se for funcionário e tiver lojas permitidas, criar permissões
+    if (
+      role === "FUNCIONARIO" &&
+      lojasPermitidas &&
+      lojasPermitidas.length > 0
+    ) {
+      const permissoes = lojasPermitidas.map((lojaId) => ({
+        usuarioId: usuario.id,
+        lojaId,
+        permissoes: {
+          visualizar: true,
+          editar: false,
+          registrarMovimentacao: true,
+        },
+      }));
+      await UsuarioLoja.bulkCreate(permissoes);
+    }
+
+    // Buscar usuário completo com permissões para retornar
+    const usuarioCompleto = await Usuario.findByPk(usuario.id, {
+      include: [
+        {
+          model: UsuarioLoja,
+          as: "permissoesLojas",
+          include: [
+            {
+              model: Loja,
+              attributes: ["id", "nome"],
+            },
+          ],
+        },
+      ],
+    });
+
+    res.status(201).json(usuarioCompleto);
+  } catch (error) {
+    console.error("Erro ao criar usuário:", error);
+    res.status(500).json({ error: "Erro ao criar usuário" });
+  }
+};
+
+// Atualizar usuário (Recuperado e corrigido)
+export const atualizarUsuario = async (req, res) => {
+  try {
+    const { nome, email, telefone, role, lojasPermitidas, ativo } = req.body;
+    const usuario = await Usuario.findByPk(req.params.id);
+
+    if (!usuario) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
+    }
+
+    // Atualiza dados básicos
+    await usuario.update({
+      nome,
+      email,
+      telefone,
+      role,
+      ativo
+    });
+
+    // Gerenciar permissões de loja
     if (lojasPermitidas !== undefined) {
       // Remover permissões antigas
       await UsuarioLoja.destroy({ where: { usuarioId: usuario.id } });
 
-      // Adicionar novas permissões (apenas se for FUNCIONARIO)
+      // Adicionar novas permissões (apenas se for FUNCIONARIO e houver lojas)
       if (
         (role || usuario.role) === "FUNCIONARIO" &&
         lojasPermitidas.length > 0
