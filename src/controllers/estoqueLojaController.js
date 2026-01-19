@@ -4,9 +4,15 @@ import { EstoqueLoja, Loja, Produto } from "../models/index.js";
 export const listarEstoqueLoja = async (req, res) => {
   try {
     const { lojaId } = req.params;
-
+    let where = {};
+    if (req.empresaId !== "000001") {
+      where.lojaId = lojaId;
+    } else {
+      // superadmin pode ver estoque de qualquer loja, ou filtrar por lojaId se quiser
+      if (lojaId) where.lojaId = lojaId;
+    }
     const estoque = await EstoqueLoja.findAll({
-      where: { lojaId },
+      where,
       include: [
         {
           model: Produto,
@@ -16,7 +22,6 @@ export const listarEstoqueLoja = async (req, res) => {
       ],
       order: [["createdAt", "DESC"]],
     });
-
     res.json(estoque);
   } catch (error) {
     console.error("Erro ao listar estoque da loja:", error);
@@ -44,7 +49,7 @@ export const atualizarEstoqueLoja = async (req, res) => {
     if (quantidade < 0) {
       console.log(
         "❌ [atualizarEstoqueLoja] Quantidade negativa rejeitada:",
-        quantidade
+        quantidade,
       );
       return res
         .status(400)
@@ -62,7 +67,7 @@ export const atualizarEstoqueLoja = async (req, res) => {
     if (!produto) {
       console.log(
         "❌ [atualizarEstoqueLoja] Produto não encontrado:",
-        produtoId
+        produtoId,
       );
       return res.status(404).json({ error: "Produto não encontrado" });
     }
@@ -150,7 +155,7 @@ export const criarOuAtualizarProdutoEstoque = async (req, res) => {
     if (quantidade < 0) {
       console.log(
         "❌ [criarOuAtualizarProdutoEstoque] Quantidade negativa rejeitada:",
-        quantidade
+        quantidade,
       );
       return res
         .status(400)
@@ -162,7 +167,7 @@ export const criarOuAtualizarProdutoEstoque = async (req, res) => {
     if (!loja) {
       console.log(
         "❌ [criarOuAtualizarProdutoEstoque] Loja não encontrada:",
-        lojaId
+        lojaId,
       );
       return res.status(404).json({ error: "Loja não encontrada" });
     }
@@ -172,7 +177,7 @@ export const criarOuAtualizarProdutoEstoque = async (req, res) => {
     if (!produto) {
       console.log(
         "❌ [criarOuAtualizarProdutoEstoque] Produto não encontrado:",
-        produtoId
+        produtoId,
       );
       return res.status(404).json({ error: "Produto não encontrado" });
     }
@@ -311,7 +316,7 @@ export const atualizarVariosEstoques = async (req, res) => {
     }
 
     console.log(
-      `Processados: ${resultados.length} sucessos, ${erros.length} erros`
+      `Processados: ${resultados.length} sucessos, ${erros.length} erros`,
     );
 
     res.json({

@@ -4,18 +4,16 @@ import { Produto } from "../models/index.js";
 export const listarProdutos = async (req, res) => {
   try {
     const { categoria, incluirInativos } = req.query;
-    const where = {};
-
+    let where = {};
+    if (req.empresaId !== "000001") {
+      where.empresaId = req.empresaId;
+    }
     if (categoria) {
       where.categoria = categoria;
     }
-
-    // Por padrão, só mostra produtos ativos
-    // Para ver inativos, passar ?incluirInativos=true
     if (incluirInativos !== "true") {
       where.ativo = true;
     }
-
     const produtos = await Produto.findAll({
       where,
       order: [["nome", "ASC"]],
@@ -74,6 +72,17 @@ export const criarProduto = async (req, res) => {
       }
     }
 
+    let empresaId = req.empresaId;
+    if (req.empresaId === "000001") {
+      if (!req.body.empresaId) {
+        return res
+          .status(400)
+          .json({
+            error: "SUPER_ADMIN deve informar empresaId ao criar produto",
+          });
+      }
+      empresaId = req.body.empresaId;
+    }
     const produto = await Produto.create({
       codigo,
       nome,
@@ -87,6 +96,7 @@ export const criarProduto = async (req, res) => {
       estoqueMinimo,
       imagemUrl,
       ativo,
+      empresaId,
     });
 
     res.locals.entityId = produto.id;

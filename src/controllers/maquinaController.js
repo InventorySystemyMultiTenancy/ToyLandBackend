@@ -4,18 +4,16 @@ import { Maquina, Loja, Movimentacao } from "../models/index.js";
 export const listarMaquinas = async (req, res) => {
   try {
     const { lojaId, incluirInativas } = req.query;
-    const where = {};
-
-    if (lojaId) {
-      where.lojaId = lojaId;
+    let where = {};
+    if (req.empresaId !== "000001") {
+      // Só filtra por loja se não for superadmin
+      if (lojaId) where.lojaId = lojaId;
+    } else {
+      if (lojaId) where.lojaId = lojaId; // superadmin pode filtrar por loja opcionalmente
     }
-
-    // Por padrão, só mostra máquinas ativas
-    // Para ver inativas, passar ?incluirInativas=true
     if (incluirInativas !== "true") {
       where.ativo = true;
     }
-
     const maquinas = await Maquina.findAll({
       where,
       attributes: { exclude: [] }, // Inclui todos os atributos da máquina, inclusive lojaId
@@ -83,6 +81,12 @@ export const criarMaquina = async (req, res) => {
       return res
         .status(400)
         .json({ error: "Código e ID da loja são obrigatórios" });
+    }
+    // Se for superadmin, lojaId deve ser informado explicitamente
+    if (req.empresaId === "000001" && !lojaId) {
+      return res
+        .status(400)
+        .json({ error: "SUPER_ADMIN deve informar lojaId ao criar máquina" });
     }
 
     // Verificar se código já existe

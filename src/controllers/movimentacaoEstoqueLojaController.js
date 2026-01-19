@@ -5,7 +5,13 @@ import { Loja, Usuario, Produto } from "../models/index.js";
 // Listar todas as movimentações de estoque de loja
 export const listarMovimentacoesEstoqueLoja = async (req, res) => {
   try {
+    let where = {};
+    if (req.empresaId !== "000001") {
+      // só traz movimentações das lojas da empresa
+      where.empresaId = req.empresaId;
+    }
     const movimentacoes = await MovimentacaoEstoqueLoja.findAll({
+      where,
       order: [["dataMovimentacao", "DESC"]],
       include: [
         { model: Loja, as: "loja", attributes: ["id", "nome"] },
@@ -70,7 +76,7 @@ export const criarMovimentacaoEstoqueLoja = async (req, res) => {
         let novaQuantidade = 0;
         if (estoque) {
           console.log(
-            `[ESTOQUE] Antes: lojaId=${lojaId}, produtoId=${item.produtoId}, quantidadeAtual=${estoque.quantidade}`
+            `[ESTOQUE] Antes: lojaId=${lojaId}, produtoId=${item.produtoId}, quantidadeAtual=${estoque.quantidade}`,
           );
           if ((item.tipoMovimentacao || "saida") === "entrada") {
             novaQuantidade = estoque.quantidade + Number(item.quantidade);
@@ -80,7 +86,7 @@ export const criarMovimentacaoEstoqueLoja = async (req, res) => {
           }
           await estoque.update({ quantidade: novaQuantidade });
           console.log(
-            `[ESTOQUE] Depois: lojaId=${lojaId}, produtoId=${item.produtoId}, novaQuantidade=${novaQuantidade}`
+            `[ESTOQUE] Depois: lojaId=${lojaId}, produtoId=${item.produtoId}, novaQuantidade=${novaQuantidade}`,
           );
         } else {
           // Se não existe, cria novo registro de estoque
@@ -94,7 +100,7 @@ export const criarMovimentacaoEstoqueLoja = async (req, res) => {
             quantidade: novaQuantidade,
           });
           console.log(
-            `[ESTOQUE] Criado novo estoque: lojaId=${lojaId}, produtoId=${item.produtoId}, quantidade=${novaQuantidade}`
+            `[ESTOQUE] Criado novo estoque: lojaId=${lojaId}, produtoId=${item.produtoId}, quantidade=${novaQuantidade}`,
           );
         }
       } catch (err) {
@@ -117,7 +123,7 @@ export const criarMovimentacaoEstoqueLoja = async (req, res) => {
             ],
           },
         ],
-      }
+      },
     );
 
     return res.status(201).json(movimentacaoCompleta);
@@ -243,7 +249,7 @@ export const editarMovimentacaoEstoqueLoja = async (req, res) => {
             ],
           },
         ],
-      }
+      },
     );
 
     return res.json(movimentacaoCompleta);
