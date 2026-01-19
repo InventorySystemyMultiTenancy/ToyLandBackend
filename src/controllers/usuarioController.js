@@ -78,8 +78,10 @@ export const obterUsuario = async (req, res) => {
 export const criarUsuario = async (req, res) => {
   try {
     const { nome, email, senha, telefone, role, lojasPermitidas } = req.body;
+    console.log('Dados recebidos para criar usuário:', req.body);
 
     if (!nome || !email || !senha) {
+      console.warn('Faltando campos obrigatórios:', { nome, email, senha });
       return res
         .status(400)
         .json({ error: "Nome, email e senha são obrigatórios" });
@@ -87,6 +89,7 @@ export const criarUsuario = async (req, res) => {
 
     // Impedir criação de SUPER_ADMIN por admin comum
     if (role === "SUPER_ADMIN") {
+      console.warn('Tentativa de criar SUPER_ADMIN:', req.body);
       return res
         .status(403)
         .json({ error: "Não é permitido criar usuários SUPER_ADMIN" });
@@ -95,6 +98,7 @@ export const criarUsuario = async (req, res) => {
     // Validar role
     const roleValida = ["ADMIN", "FUNCIONARIO"].includes(role);
     if (!roleValida) {
+      console.warn('Role inválida recebida:', role);
       return res
         .status(400)
         .json({ error: "Role inválida. Use ADMIN ou FUNCIONARIO" });
@@ -110,6 +114,7 @@ export const criarUsuario = async (req, res) => {
       });
     }
     if (usuarioExistente) {
+      console.warn('Email já cadastrado:', email);
       return res.status(400).json({ error: "Email já cadastrado" });
     }
 
@@ -117,6 +122,7 @@ export const criarUsuario = async (req, res) => {
     let empresaId = req.empresaId;
     if (req.empresaId === "000001") {
       if (!req.body.empresaId) {
+        console.warn('SUPER_ADMIN não informou empresaId ao criar usuário');
         return res
           .status(400)
           .json({
@@ -125,55 +131,60 @@ export const criarUsuario = async (req, res) => {
       }
       empresaId = req.body.empresaId;
     }
-    const usuario = await Usuario.create({
-      nome,
-      email,
-      senha,
-      telefone,
-      role,
-      empresaId,
-    });
+    try {
+      const usuario = await Usuario.create({
+        nome,
+        email,
+        senha,
+        telefone,
+        role,
+        empresaId,
+      });
 
     // Se for funcionário e tiver lojas permitidas, criar permissões
-    if (
-      role === "FUNCIONARIO" &&
-      lojasPermitidas &&
-      lojasPermitidas.length > 0
-    ) {
-      const permissoes = lojasPermitidas.map((lojaId) => ({
-        usuarioId: usuario.id,
-        lojaId,
-        permissoes: {
-          visualizar: true,
-          editar: false,
-          registrarMovimentacao: true,
-        },
-      }));
-      await UsuarioLoja.bulkCreate(permissoes);
+      if (
+        role === "FUNCIONARIO" &&
+        lojasPermitidas &&
+        lojasPermitidas.length > 0
+      ) {
+        const permissoes = lojasPermitidas.map((lojaId) => ({
+          usuarioId: usuario.id,
+          lojaId,
+          permissoes: {
+            visualizar: true,
+            editar: false,
+            registrarMovimentacao: true,
+          },
+        }));
+        await UsuarioLoja.bulkCreate(permissoes);
+      }
+
+      // Buscar usuário completo com permissões
+      const usuarioCompleto = await Usuario.findByPk(usuario.id, {
+        include: [
+          {
+            model: UsuarioLoja,
+            as: "permissoesLojas",
+            include: [
+              {
+                model: Loja,
+                attributes: ["id", "nome"],
+              },
+            ],
+          },
+        ],
+      });
+
+      res.locals.entityId = usuario.id;
+      res.status(201).json(usuarioCompleto);
+    } catch (error) {
+      console.error("Erro ao criar usuário (Sequelize):", error);
+      if (error && error.errors && error.errors.length > 0) {
+        // Sequelize validation error
+        return res.status(400).json({ error: error.errors[0].message });
+      }
+      res.status(500).json({ error: "Erro ao criar usuário" });
     }
-
-    // Buscar usuário completo com permissões
-    const usuarioCompleto = await Usuario.findByPk(usuario.id, {
-      include: [
-        {
-          model: UsuarioLoja,
-          as: "permissoesLojas",
-          include: [
-            {
-              model: Loja,
-              attributes: ["id", "nome"],
-            },
-          ],
-        },
-      ],
-    });
-
-    res.locals.entityId = usuario.id;
-    res.status(201).json(usuarioCompleto);
-  } catch (error) {
-    console.error("Erro ao criar usuário:", error);
-    res.status(500).json({ error: "Erro ao criar usuário" });
-  }
 };
 
 // Atualizar usuário (apenas ADMIN)
