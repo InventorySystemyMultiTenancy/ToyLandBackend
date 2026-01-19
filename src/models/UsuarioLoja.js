@@ -14,6 +14,7 @@ const UsuarioLoja = sequelize.define(
     usuarioId: {
       type: DataTypes.UUID,
       allowNull: false,
+      field: "usuarioid",
       references: {
         model: "usuarios",
         key: "id",
@@ -22,6 +23,7 @@ const UsuarioLoja = sequelize.define(
     lojaId: {
       type: DataTypes.UUID,
       allowNull: false,
+      field: "lojaid",
       references: {
         model: "lojas",
         key: "id",
@@ -40,7 +42,7 @@ const UsuarioLoja = sequelize.define(
   {
     tableName: "usuario_lojas",
     timestamps: true,
-  }
+  },
 );
 
 export default UsuarioLoja;

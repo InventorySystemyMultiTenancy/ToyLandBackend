@@ -23,6 +23,7 @@ const Empresa = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
       unique: true,
+      field: "externalid",
       comment: "ID do cliente no gateway de pagamento (Asaas, Stripe, etc)",
     },
     email: {
@@ -34,6 +35,7 @@ const Empresa = sequelize.define(
     dataExpiracao: {
       type: DataTypes.DATE,
       allowNull: true,
+      field: "dataexpiracao",
       comment: "Data de expiração do plano (renovada via webhook)",
     },
     plano: {
@@ -63,7 +65,7 @@ const Empresa = sequelize.define(
   {
     tableName: "empresas",
     timestamps: true,
-  }
+  },
 );
 
 Empresa.associate = (models) => {
