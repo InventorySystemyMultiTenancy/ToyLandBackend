@@ -3,6 +3,14 @@ import { Empresa } from "../models/index.js";
 // Atualizar configurações da empresa logada
 export const atualizarConfiguracoes = async (req, res) => {
   try {
+    if (req.empresaId === "000001") {
+      return res
+        .status(400)
+        .json({
+          error:
+            "SUPER_ADMIN deve selecionar uma empresa para atualizar configurações",
+        });
+    }
     const empresa = await Empresa.findByPk(req.empresaId);
     if (!empresa) {
       return res.status(404).json({ error: "Empresa não encontrada" });

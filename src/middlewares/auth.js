@@ -37,7 +37,7 @@ export const autenticar = async (req, res, next) => {
         `✅ SUPER_ADMIN autenticado: ${usuario.email} - Rota: ${req.method} ${req.originalUrl}`,
       );
       req.usuario = usuario;
-      req.empresaId = usuario.empresaId;
+      req.empresaId = "000001"; // SUPER_ADMIN tem empresaId global
       return next();
     }
 

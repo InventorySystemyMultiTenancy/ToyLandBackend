@@ -5,23 +5,22 @@ import { Op } from "sequelize";
 export const listarUsuarios = async (req, res) => {
   try {
     const { role, ativo, busca } = req.query;
-    const where = {};
-
+    let where = {};
+    if (req.empresaId !== "000001") {
+      where.empresaId = req.empresaId;
+    }
     if (role) {
       where.role = role;
     }
-
     if (ativo !== undefined) {
       where.ativo = ativo === "true";
     }
-
     if (busca) {
       where[Op.or] = [
         { nome: { [Op.iLike]: `%${busca}%` } },
         { email: { [Op.iLike]: `%${busca}%` } },
       ];
     }
-
     const usuarios = await Usuario.findAll({
       where,
       include: [
@@ -115,8 +114,17 @@ export const criarUsuario = async (req, res) => {
     }
 
     // SUPER_ADMIN pode criar usuário em qualquer empresa
-    const empresaId =
-      req.usuario.role === "SUPER_ADMIN" ? req.body.empresaId : req.empresaId;
+    let empresaId = req.empresaId;
+    if (req.empresaId === "000001") {
+      if (!req.body.empresaId) {
+        return res
+          .status(400)
+          .json({
+            error: "SUPER_ADMIN deve informar empresaId ao criar usuário",
+          });
+      }
+      empresaId = req.body.empresaId;
+    }
     const usuario = await Usuario.create({
       nome,
       email,

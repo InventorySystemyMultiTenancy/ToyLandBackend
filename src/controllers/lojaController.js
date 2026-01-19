@@ -3,8 +3,10 @@ import { Loja, Maquina, UsuarioLoja } from "../models/index.js";
 // US04 - Listar todas as lojas
 export const listarLojas = async (req, res) => {
   try {
-    const where =
-      req.usuario.role === "SUPER_ADMIN" ? {} : { empresaId: req.empresaId };
+    let where = {};
+    if (req.empresaId !== "000001") {
+      where.empresaId = req.empresaId;
+    }
     const lojas = await Loja.findAll({
       where,
       include: [
@@ -26,10 +28,10 @@ export const listarLojas = async (req, res) => {
 // US04 - Obter loja por ID
 export const obterLoja = async (req, res) => {
   try {
-    const where =
-      req.usuario.role === "SUPER_ADMIN"
-        ? { id: req.params.id }
-        : { id: req.params.id, empresaId: req.empresaId };
+    let where = { id: req.params.id };
+    if (req.empresaId !== "000001") {
+      where.empresaId = req.empresaId;
+    }
     const loja = await Loja.findOne({
       where,
       include: [
@@ -58,8 +60,15 @@ export const criarLoja = async (req, res) => {
       return res.status(400).json({ error: "Nome da loja é obrigatório" });
     }
 
-    const empresaId =
-      req.usuario.role === "SUPER_ADMIN" ? req.body.empresaId : req.empresaId;
+    let empresaId = req.empresaId;
+    if (req.empresaId === "000001") {
+      if (!req.body.empresaId) {
+        return res
+          .status(400)
+          .json({ error: "SUPER_ADMIN deve informar empresaId ao criar loja" });
+      }
+      empresaId = req.body.empresaId;
+    }
     const loja = await Loja.create({
       nome,
       endereco,
@@ -81,10 +90,10 @@ export const criarLoja = async (req, res) => {
 // US04 - Atualizar loja
 export const atualizarLoja = async (req, res) => {
   try {
-    const where =
-      req.usuario.role === "SUPER_ADMIN"
-        ? { id: req.params.id }
-        : { id: req.params.id, empresaId: req.empresaId };
+    let where = { id: req.params.id };
+    if (req.empresaId !== "000001") {
+      where.empresaId = req.empresaId;
+    }
     const loja = await Loja.findOne({
       where,
     });
@@ -112,10 +121,10 @@ export const atualizarLoja = async (req, res) => {
 // US04 - Deletar loja
 export const deletarLoja = async (req, res) => {
   try {
-    const where =
-      req.usuario.role === "SUPER_ADMIN"
-        ? { id: req.params.id }
-        : { id: req.params.id, empresaId: req.empresaId };
+    let where = { id: req.params.id };
+    if (req.empresaId !== "000001") {
+      where.empresaId = req.empresaId;
+    }
     const loja = await Loja.findOne({
       where,
     });
