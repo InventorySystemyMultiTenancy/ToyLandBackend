@@ -17,6 +17,7 @@ const MovimentacaoProduto = sequelize.define(
         model: "movimentacoes",
         key: "id",
       },
+      field: "movimentacaoid",
     },
     produtoId: {
       type: DataTypes.UUID,
@@ -25,6 +26,7 @@ const MovimentacaoProduto = sequelize.define(
         model: "produtos",
         key: "id",
       },
+      field: "produtoid",
     },
     quantidadeSaiu: {
       type: DataTypes.INTEGER,
@@ -42,7 +44,7 @@ const MovimentacaoProduto = sequelize.define(
   {
     tableName: "movimentacao_produtos",
     timestamps: true,
-  }
+  },
 );
 
 export default MovimentacaoProduto;
