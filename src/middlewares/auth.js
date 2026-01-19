@@ -1,3 +1,7 @@
+import jwt from "jsonwebtoken";
+import { Usuario } from "../models/index.js";
+import LogAtividade from "../models/LogAtividade.js";
+
 // Middleware para proteger rotas de super admin (gestão SaaS)
 export const verificarSuperAdmin = (req, res, next) => {
   // Verifica se o usuário tem role SUPER_ADMIN
@@ -6,9 +10,6 @@ export const verificarSuperAdmin = (req, res, next) => {
   }
   return res.status(403).json({ error: "Acesso restrito ao super admin." });
 };
-import jwt from "jsonwebtoken";
-import { Usuario } from "../models/index.js";
-import LogAtividade from "../models/LogAtividade.js";
 
 // US01 - Middleware de Autenticação
 export const autenticar = async (req, res, next) => {
@@ -47,16 +48,15 @@ export const autenticar = async (req, res, next) => {
       return res
         .status(403)
         .json({ error: "Empresa inativa ou não encontrada" });
-// US02 - Middleware de Autorização por Role
-export const autorizarRole = (...rolesPermitidas) => {
-  return (req, res, next) => {
-    if (!rolesPermitidas.includes(req.usuario.role)) {
-      return res.status(403).json({
-        error: "Acesso negado. Você não tem permissão para esta ação.",
-      });
     }
+
+    req.usuario = usuario;
+    req.empresaId = usuario.empresaId;
     next();
-  };
+  } catch (error) {
+    console.error("Erro no middleware de autenticação:", error);
+    return res.status(401).json({ error: "Token inválido ou expirado" });
+  }
 };
 
 // US02 - Middleware de Verificação de Permissão em Loja
