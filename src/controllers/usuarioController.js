@@ -164,60 +164,51 @@ export const criarUsuario = async (req, res) => {
         include: [
           {
             model: UsuarioLoja,
-            as: "permissoesLojas",
-            include: [
-              {
-                model: Loja,
-                attributes: ["id", "nome"],
-              },
-            ],
-          },
-        ],
-      });
+        const usuario = await Usuario.create({
+          nome,
+          email,
+          senha,
+          telefone,
+          role,
+          empresaId,
+        });
 
-      res.locals.entityId = usuario.id;
-      res.status(201).json(usuarioCompleto);
-    } catch (error) {
-      console.error("Erro ao criar usuário (Sequelize):", error);
-      if (error && error.errors && error.errors.length > 0) {
-        // Sequelize validation error
-        return res.status(400).json({ error: error.errors[0].message });
-      }
-      res.status(500).json({ error: "Erro ao criar usuário" });
-    }
-};
+        // Se for funcionário e tiver lojas permitidas, criar permissões
+        if (
+          role === "FUNCIONARIO" &&
+          lojasPermitidas &&
+          lojasPermitidas.length > 0
+        ) {
+          const permissoes = lojasPermitidas.map((lojaId) => ({
+            usuarioId: usuario.id,
+            lojaId,
+            permissoes: {
+              visualizar: true,
+              editar: false,
+              registrarMovimentacao: true,
+            },
+          }));
+          await UsuarioLoja.bulkCreate(permissoes);
+        }
 
-// Atualizar usuário (apenas ADMIN)
-export const atualizarUsuario = async (req, res) => {
-  try {
-    const usuario = await Usuario.findByPk(req.params.id);
+        // Buscar usuário completo com permissões
+        const usuarioCompleto = await Usuario.findByPk(usuario.id, {
+          include: [
+            {
+              model: UsuarioLoja,
+              as: "permissoesLojas",
+              include: [
+                {
+                  model: Loja,
+                  attributes: ["id", "nome"],
+                },
+              ],
+            },
+          ],
+        });
 
-    if (!usuario) {
-      return res.status(404).json({ error: "Usuário não encontrado" });
-    }
-
-    const { nome, email, senha, telefone, role, ativo, lojasPermitidas } =
-      req.body;
-
-    // Verificar se novo email já existe em outro usuário
-    if (email && email !== usuario.email) {
-      const emailExistente = await Usuario.findOne({ where: { email } });
-      if (emailExistente) {
-        return res.status(400).json({ error: "Email já cadastrado" });
-      }
-    }
-
-    // Validar role se fornecida
-    if (role && !["ADMIN", "FUNCIONARIO"].includes(role)) {
-      return res
-        .status(400)
-        .json({ error: "Role inválida. Use ADMIN ou FUNCIONARIO" });
-    }
-
-    // Atualizar dados básicos
-    await usuario.update({
-      nome: nome ?? usuario.nome,
-      email: email ?? usuario.email,
+        res.locals.entityId = usuario.id;
+        res.status(201).json(usuarioCompleto);
       senha: senha ?? usuario.senha, // O hook beforeUpdate fará o hash se mudou
       telefone: telefone ?? usuario.telefone,
       role: role ?? usuario.role,
