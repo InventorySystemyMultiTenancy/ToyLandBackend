@@ -65,11 +65,6 @@ const Produto = sequelize.define(
       comment: "Estoque mínimo para alertas",
       field: "estoqueminimo",
     },
-    imagemUrl: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-      field: "imagemurl",
-    },
     ativo: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,

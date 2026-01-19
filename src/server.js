@@ -55,7 +55,12 @@ app.use(
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "x-tenant-subdomain",
+      "x-loja-id",
+    ],
   }),
 );
 app.use(morgan("dev"));
