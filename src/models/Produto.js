@@ -49,22 +49,26 @@ const Produto = sequelize.define(
       allowNull: true,
       defaultValue: 0,
       comment: "Custo do produto",
+      field: "custounitario",
     },
     estoqueAtual: {
       type: DataTypes.INTEGER,
       allowNull: true,
       defaultValue: 0,
       comment: "Estoque atual disponível",
+      field: "estoqueatual",
     },
     estoqueMinimo: {
       type: DataTypes.INTEGER,
       allowNull: true,
       defaultValue: 0,
       comment: "Estoque mínimo para alertas",
+      field: "estoqueminimo",
     },
     imagemUrl: {
       type: DataTypes.STRING(255),
       allowNull: true,
+      field: "imagemurl",
     },
     ativo: {
       type: DataTypes.BOOLEAN,
@@ -77,6 +81,7 @@ const Produto = sequelize.define(
         model: "empresas",
         key: "id",
       },
+      field: "empresaid",
     },
   },
   {
@@ -91,7 +96,7 @@ const Produto = sequelize.define(
         fields: ["empresaId"],
       },
     ],
-  }
+  },
 );
 
 export default Produto;

@@ -38,12 +38,14 @@ const Maquina = sequelize.define(
       allowNull: false,
       defaultValue: 100,
       comment: "Quantidade máxima que a máquina comporta",
+      field: "capacidadepadrao",
     },
     valorFicha: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
       defaultValue: 5.0,
       comment: "Valor em R$ de cada ficha",
+      field: "valorficha",
     },
     fichasNecessarias: {
       type: DataTypes.INTEGER,
@@ -98,15 +100,18 @@ const Maquina = sequelize.define(
       allowNull: false,
       defaultValue: 30,
       comment: "Porcentagem mínima para alertar estoque baixo",
+      field: "percentualalertaestoque",
     },
     localizacao: {
       type: DataTypes.STRING(100),
       allowNull: true,
       comment: "Posição dentro da loja",
+      field: "localizacao",
     },
     ativo: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
+      field: "ativo",
     },
     empresaId: {
       type: DataTypes.UUID,
@@ -115,6 +120,7 @@ const Maquina = sequelize.define(
         model: "empresas",
         key: "id",
       },
+      field: "empresaid",
     },
   },
   {

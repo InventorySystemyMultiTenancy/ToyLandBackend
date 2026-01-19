@@ -16,6 +16,7 @@ const Movimentacao = sequelize.define(
         model: "maquinas",
         key: "id",
       },
+      field: "maquinaid",
     },
     usuarioId: {
       type: DataTypes.UUID,
@@ -24,6 +25,7 @@ const Movimentacao = sequelize.define(
         model: "usuarios",
         key: "id",
       },
+      field: "usuarioid",
     },
     dataColeta: {
       type: DataTypes.DATE,
@@ -132,6 +134,7 @@ const Movimentacao = sequelize.define(
         model: "empresas",
         key: "id",
       },
+      field: "empresaid",
     },
   },
   {
@@ -166,7 +169,7 @@ const Movimentacao = sequelize.define(
         // movimentacao.valorFaturado é calculado na controller com o valorFicha atual da máquina
       },
     },
-  }
+  },
 );
 
 export default Movimentacao;
