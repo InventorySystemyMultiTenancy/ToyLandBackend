@@ -33,6 +33,9 @@ export const autenticar = async (req, res, next) => {
 
     // SUPER_ADMIN não precisa carregar empresa
     if (usuario.role === "SUPER_ADMIN") {
+      console.log(
+        `✅ SUPER_ADMIN autenticado: ${usuario.email} - Rota: ${req.method} ${req.originalUrl}`,
+      );
       req.usuario = usuario;
       req.empresaId = usuario.empresaId;
       return next();
@@ -62,11 +65,22 @@ export const autenticar = async (req, res, next) => {
 // US02 - Middleware de Autorização por Role
 export const autorizarRole = (...rolesPermitidas) => {
   return (req, res, next) => {
+    console.log(
+      `🔐 Verificando autorização - Rota: ${req.method} ${req.originalUrl}`,
+    );
+    console.log(`   Role do usuário: ${req.usuario?.role}`);
+    console.log(`   Roles permitidas: ${rolesPermitidas.join(", ")}`);
+
     if (!rolesPermitidas.includes(req.usuario.role)) {
+      console.log(
+        `❌ Acesso negado - Role ${req.usuario.role} não está em [${rolesPermitidas.join(", ")}]`,
+      );
       return res.status(403).json({
         error: "Acesso negado. Você não tem permissão para esta ação.",
       });
     }
+
+    console.log(`✅ Acesso autorizado`);
     next();
   };
 };
