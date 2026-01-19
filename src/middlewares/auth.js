@@ -21,10 +21,8 @@ export const autenticar = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Carrega o usuário e a associação empresa (opcional para SUPER_ADMIN)
-    const usuario = await Usuario.findByPk(decoded.id, {
-      include: [{ association: "empresa", required: false }],
-    });
+    // Carrega o usuário básico primeiro
+    let usuario = await Usuario.findByPk(decoded.id);
 
     if (!usuario || !usuario.ativo) {
       return res
@@ -32,25 +30,23 @@ export const autenticar = async (req, res, next) => {
         .json({ error: "Usuário não encontrado ou inativo" });
     }
 
-    // SUPER_ADMIN não precisa ter empresa
-    if (usuario.role !== "SUPER_ADMIN") {
-      // Verifica se a empresa está ativa
-      if (!usuario.empresa || usuario.empresa.ativo === false) {
-        return res
-          .status(403)
-          .json({ error: "Empresa inativa ou não encontrada" });
-      }
+    // SUPER_ADMIN não precisa carregar empresa
+    if (usuario.role === "SUPER_ADMIN") {
+      req.usuario = usuario;
+      req.empresaId = usuario.empresaId;
+      return next();
     }
 
-    req.usuario = usuario;
-    req.empresaId = usuario.empresaId;
-    next();
-  } catch (error) {
-    console.error("Erro no middleware de autenticação:", error);
-    return res.status(401).json({ error: "Token inválido ou expirado" });
-  }
-};
+    // Para outros usuários, carrega a empresa
+    usuario = await Usuario.findByPk(decoded.id, {
+      include: [{ association: "empresa", required: true }],
+    });
 
+    // Verifica se a empresa está ativa
+    if (!usuario.empresa || usuario.empresa.ativo === false) {
+      return res
+        .status(403)
+        .json({ error: "Empresa inativa ou não encontrada" });
 // US02 - Middleware de Autorização por Role
 export const autorizarRole = (...rolesPermitidas) => {
   return (req, res, next) => {
