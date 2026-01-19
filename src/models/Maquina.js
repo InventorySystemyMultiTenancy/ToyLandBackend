@@ -27,6 +27,7 @@ const Maquina = sequelize.define(
     lojaId: {
       type: DataTypes.UUID,
       allowNull: false,
+      field: "lojaid",
       references: {
         model: "lojas",
         key: "id",
@@ -120,7 +121,7 @@ const Maquina = sequelize.define(
     tableName: "maquinas",
     timestamps: true,
     indexes: [{ fields: ["empresaId"] }],
-  }
+  },
 );
 
 export default Maquina;
