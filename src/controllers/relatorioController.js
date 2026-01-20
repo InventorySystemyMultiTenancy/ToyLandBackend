@@ -110,7 +110,7 @@ export const dashboardRelatorio = async (req, res) => {
       attributes: [
         [Sequelize.col("maquina.id"), "id"],
         [Sequelize.col("maquina.nome"), "nome"],
-        [Sequelize.col("maquina.capacidadePadrao"), "capacidadePadrao"],
+        [Sequelize.col("maquina.capacidadepadrao"), "capacidadePadrao"],
         [Sequelize.fn("SUM", Sequelize.col("valorfaturado")), "faturamento"],
       ],
       include: [
@@ -121,7 +121,7 @@ export const dashboardRelatorio = async (req, res) => {
         },
       ],
       where: whereMovimentacao,
-      group: ["maquina.id", "maquina.nome", "maquina.capacidadePadrao"],
+      group: ["maquina.id", "maquina.nome", "maquina.capacidadepadrao"],
       raw: true,
       nest: true,
     });
