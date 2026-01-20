@@ -8,7 +8,7 @@ export const listarProdutos = async (req, res) => {
     const { categoria, incluirInativos } = req.query;
     let where = {};
     if (req.empresaId !== "000001") {
-      where.empresaid = req.empresaId;
+      where.empresaId = req.empresaId;
     }
     if (categoria) {
       where.categoria = categoria;
@@ -203,7 +203,7 @@ export const listarCategorias = async (req, res) => {
 
     // Filtrar por empresa (exceto SUPER_ADMIN)
     if (req.empresaId !== "000001") {
-      where.empresaid = req.empresaId;
+      where.empresaId = req.empresaId;
     }
 
     const categorias = await Produto.findAll({

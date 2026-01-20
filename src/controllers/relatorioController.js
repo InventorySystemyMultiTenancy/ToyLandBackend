@@ -17,17 +17,17 @@ export const dashboardRelatorio = async (req, res) => {
 
     // 2. Configuração de filtros WHERE
     const whereMovimentacao = {
-      empresaid: req.empresaId,
+      empresaId: req.empresaId,
       dataColeta: {
         [Op.between]: [inicio, fim],
       },
     };
 
     const whereMaquina = {
-      empresaid: req.empresaId,
+      empresaId: req.empresaId,
     };
     if (lojaId) {
-      whereMaquina.lojaid = lojaId;
+      whereMaquina.lojaId = lojaId;
     }
 
     // --- QUERY 1: TOTAIS GERAIS ---
@@ -231,7 +231,7 @@ export const buscarAlertasDeInconsistencia = async (req, res) => {
     // Filtrar máquinas por empresa (exceto SUPER_ADMIN)
     const whereMaquinas = { ativo: true };
     if (req.empresaId !== "000001") {
-      whereMaquinas.empresaid = req.empresaId;
+      whereMaquinas.empresaId = req.empresaId;
     }
 
     const maquinas = await Maquina.findAll({ where: whereMaquinas });
@@ -662,7 +662,7 @@ export const relatorioImpressao = async (req, res) => {
     // Buscar todas as movimentações da loja no período
     const movimentacoes = await Movimentacao.findAll({
       where: {
-        empresaid: req.empresaId,
+        empresaId: req.empresaId,
         dataColeta: {
           [Op.between]: [inicio, fim],
         },
@@ -671,7 +671,7 @@ export const relatorioImpressao = async (req, res) => {
         {
           model: Maquina,
           as: "maquina",
-          where: { lojaid: lojaId },
+          where: { lojaId: lojaId },
           attributes: ["id", "codigo", "nome"],
         },
         {

@@ -7,7 +7,7 @@ export const listarUsuarios = async (req, res) => {
     const { role, ativo, busca } = req.query;
     let where = {};
     if (req.empresaId !== "000001") {
-      where.empresaid = req.empresaId;
+      where.empresaId = req.empresaId;
     }
     if (role) {
       where.role = role;

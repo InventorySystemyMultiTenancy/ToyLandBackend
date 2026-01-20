@@ -5,7 +5,7 @@ export const listarLojas = async (req, res) => {
   try {
     let where = {};
     if (req.empresaId !== "000001") {
-      where.empresaid = req.empresaId;
+      where.empresaId = req.empresaId;
     }
     const lojas = await Loja.findAll({
       where,
@@ -30,7 +30,7 @@ export const obterLoja = async (req, res) => {
   try {
     let where = { id: req.params.id };
     if (req.empresaId !== "000001") {
-      where.empresaid = req.empresaId;
+      where.empresaId = req.empresaId;
     }
     const loja = await Loja.findOne({
       where,
