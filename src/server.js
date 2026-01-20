@@ -38,18 +38,25 @@ app.use(
   cors({
     origin: function (origin, callback) {
       // Permitir requisições sem origin (como mobile apps, Postman, curl)
-      if (!origin) return callback(null, true);
+      if (!origin) {
+        console.log("[CORS] Permitindo requisição sem origin");
+        return callback(null, true);
+      }
+
+      console.log("[CORS] Verificando origin:", origin);
 
       // Permitir qualquer subdomínio OU domínio raiz de selfmachine.com.br
       const selfmachineRegex =
-        /^https?:\/\/([a-zA-Z0-9-]+\.)*selfmachine\.com\.br(:\d+)?$/;
-      if (
-        allowedOrigins.includes(origin) ||
-        allowedOrigins.includes("*") ||
-        selfmachineRegex.test(origin)
-      ) {
+        /^https?:\/\/([a-zA-Z0-9-]+\.)?selfmachine\.com\.br(:\d+)?$/;
+
+      if (allowedOrigins.includes(origin)) {
+        console.log("[CORS] Origin permitida (lista):", origin);
+        callback(null, true);
+      } else if (selfmachineRegex.test(origin)) {
+        console.log("[CORS] Origin permitida (regex):", origin);
         callback(null, true);
       } else {
+        console.log("[CORS] Origin BLOQUEADA:", origin);
         callback(new Error("Not allowed by CORS"));
       }
     },
