@@ -57,7 +57,7 @@ export const dashboardRelatorio = async (req, res) => {
           fn(
             "SUM",
             Sequelize.literal(
-              '"quantidadeAbastecida" * "produto"."custounitario"',
+              '"quantidadeabastecida" * "produto"."custounitario"',
             ),
           ),
           "custoTotal",
