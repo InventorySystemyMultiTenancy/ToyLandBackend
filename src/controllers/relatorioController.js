@@ -132,16 +132,16 @@ export const dashboardRelatorio = async (req, res) => {
       performanceRaw.map(async (p) => {
         // Busca a última movimentação dessa máquina para pegar o estoque real
         const ultimaMov = await Movimentacao.findOne({
-          where: { maquinaId: p.maquina.id },
+          where: { maquinaId: p.id },
           order: [["dataColeta", "DESC"]],
           attributes: ["totalPos"],
         });
 
         const estoqueAtual = ultimaMov ? ultimaMov.totalPos : 0;
-        const capacidade = p.maquina.capacidadePadrao || 100;
+        const capacidade = p.capacidadePadrao || 100;
 
         return {
-          nome: p.maquina.nome,
+          nome: p.nome,
           faturamento: parseFloat(p.faturamento || 0),
           ocupacao: ((estoqueAtual / capacidade) * 100).toFixed(1),
         };
