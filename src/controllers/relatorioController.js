@@ -17,14 +17,17 @@ export const dashboardRelatorio = async (req, res) => {
 
     // 2. Configuração de filtros WHERE
     const whereMovimentacao = {
+      empresaid: req.empresaId,
       dataColeta: {
         [Op.between]: [inicio, fim],
       },
     };
 
-    const whereMaquina = {};
+    const whereMaquina = {
+      empresaid: req.empresaId,
+    };
     if (lojaId) {
-      whereMaquina.lojaId = lojaId;
+      whereMaquina.lojaid = lojaId;
     }
 
     // --- QUERY 1: TOTAIS GERAIS ---
@@ -33,6 +36,8 @@ export const dashboardRelatorio = async (req, res) => {
         [fn("SUM", col("valorfaturado")), "faturamento"],
         [fn("SUM", col("sairam")), "saidas"],
         [fn("SUM", col("fichas")), "fichas"],
+        [fn("SUM", col("quantidade_notas_entrada")), "dinheiro"],
+        [fn("SUM", col("valor_entrada_maquininha_pix")), "pix"],
       ],
       include: [
         {
@@ -48,6 +53,8 @@ export const dashboardRelatorio = async (req, res) => {
 
     const faturamento = parseFloat(totaisRaw?.faturamento || 0);
     const saidas = parseInt(totaisRaw?.saidas || 0);
+    const dinheiro = parseFloat(totaisRaw?.dinheiro || 0);
+    const pix = parseFloat(totaisRaw?.pix || 0);
     const fichas = parseInt(totaisRaw?.fichas || 0);
 
     // --- QUERY 2: CUSTO TOTAL (estimativa via produtos abastecidos) ---
@@ -188,6 +195,8 @@ export const dashboardRelatorio = async (req, res) => {
         lucro,
         saidas,
         fichas,
+        dinheiro,
+        pix,
       },
       graficoFinanceiro: timelineRaw.map((t) => ({
         data: t.data,
