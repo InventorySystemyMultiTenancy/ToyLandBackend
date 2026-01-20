@@ -130,6 +130,7 @@ const Movimentacao = sequelize.define(
     mediaFichasPremio: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
+      field: "mediafichaspremio",
       comment: "fichas / sairam (se sairam > 0)",
     },
     empresaId: {
