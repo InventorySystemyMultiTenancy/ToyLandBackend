@@ -1,27 +1,12 @@
 // Dashboard agregador via SQL
-import { Sequelize } from "sequelize";
-// src/controllers/relatorioController.js
-
-// ... certifique-se de ter os imports no topo do arquivo:
-// import { Op, fn, col, literal } from "sequelize";
-// import { Movimentacao, MovimentacaoProduto, Maquina, Loja, Produto } from "../models/index.js";
-
-// src/controllers/relatorioController.js
+import { Sequelize, Op, fn, col } from "sequelize";
 
 export const dashboardRelatorio = async (req, res) => {
   try {
     const { lojaId, dataInicio, dataFim } = req.query;
     // Buscar configurações da empresa
-    const {
-      Empresa,
-      Movimentacao,
-      MovimentacaoProduto,
-      Maquina,
-      Produto,
-      Op,
-      fn,
-      col,
-    } = await import("../models/index.js");
+    const { Empresa, Movimentacao, MovimentacaoProduto, Maquina, Produto } =
+      await import("../models/index.js");
     const empresa = await Empresa.findByPk(req.empresaId);
 
     // 1. Configuração de Datas
