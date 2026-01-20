@@ -35,13 +35,11 @@ export const listarMovimentacoesEstoqueLoja = async (req, res) => {
     res.json(movimentacoes);
   } catch (error) {
     console.error("[ERRO listarMovimentacoesEstoqueLoja]", error);
-    res
-      .status(500)
-      .json({
-        error: "Erro ao listar movimentações",
-        details: error.message,
-        stack: error.stack,
-      });
+    res.status(500).json({
+      error: "Erro ao listar movimentações",
+      details: error.message,
+      stack: error.stack,
+    });
   }
 };
 
@@ -64,10 +62,10 @@ export const criarMovimentacaoEstoqueLoja = async (req, res) => {
 
     // 2. Criar a Movimentação (Header)
     const movimentacao = await MovimentacaoEstoqueLoja.create({
-      lojaId,
-      usuarioId,
+      lojaid: lojaId,
+      usuarioid: usuarioId,
       observacao,
-      dataMovimentacao: dataMovimentacao || new Date(),
+      datamovimentacao: dataMovimentacao || new Date(),
     });
 
     console.log("[DEBUG] Movimentacao criada ID:", movimentacao.id);
@@ -77,15 +75,15 @@ export const criarMovimentacaoEstoqueLoja = async (req, res) => {
     for (const [idx, item] of produtos.entries()) {
       try {
         await MovimentacaoEstoqueLojaProduto.create({
-          movimentacaoEstoqueLojaId: movimentacao.id,
-          produtoId: item.produtoId,
+          movimentacaoestoquelojaid: movimentacao.id,
+          produtoid: item.produtoId,
           quantidade: Number(item.quantidade),
-          tipoMovimentacao: item.tipoMovimentacao || "saida",
+          tipomovimentacao: item.tipoMovimentacao || "saida",
         });
 
         // Atualizar estoque da loja
         const estoque = await EstoqueLoja.findOne({
-          where: { lojaId, produtoId: item.produtoId },
+          where: { lojaid: lojaId, produtoid: item.produtoId },
         });
         let novaQuantidade = 0;
         if (estoque) {
@@ -109,8 +107,8 @@ export const criarMovimentacaoEstoqueLoja = async (req, res) => {
               ? Number(item.quantidade)
               : 0;
           await EstoqueLoja.create({
-            lojaId,
-            produtoId: item.produtoId,
+            lojaid: lojaId,
+            produtoid: item.produtoId,
             quantidade: novaQuantidade,
           });
           console.log(
@@ -186,41 +184,41 @@ export const editarMovimentacaoEstoqueLoja = async (req, res) => {
     if (Array.isArray(produtos)) {
       // Buscar produtos antigos antes de remover
       const produtosAntigos = await MovimentacaoEstoqueLojaProduto.findAll({
-        where: { movimentacaoEstoqueLojaId: movimentacao.id },
+        where: { movimentacaoestoquelojaid: movimentacao.id },
       });
 
       await MovimentacaoEstoqueLojaProduto.destroy({
-        where: { movimentacaoEstoqueLojaId: movimentacao.id },
+        where: { movimentacaoestoquelojaid: movimentacao.id },
       });
 
       // Mapear produtos antigos por produtoId para fácil acesso
       const mapAntigos = {};
       for (const prod of produtosAntigos) {
-        mapAntigos[prod.produtoId] = prod;
+        mapAntigos[prod.produtoid] = prod;
       }
 
       // Atualizar/ajustar estoque da loja para cada produto
       const { EstoqueLoja } = await import("../models/index.js");
       for (const item of produtos) {
         await MovimentacaoEstoqueLojaProduto.create({
-          movimentacaoEstoqueLojaId: movimentacao.id,
-          produtoId: item.produtoId,
+          movimentacaoestoquelojaid: movimentacao.id,
+          produtoid: item.produtoId,
           quantidade: Number(item.quantidade),
-          tipoMovimentacao: item.tipoMovimentacao || "saida",
+          tipomovimentacao: item.tipoMovimentacao || "saida",
         });
 
         // Ajuste de estoque considerando tipo antigo e novo
         const antigo = mapAntigos[item.produtoId];
         const quantidadeAntiga = antigo ? Number(antigo.quantidade) : 0;
         const tipoAntigo = antigo
-          ? antigo.tipoMovimentacao
+          ? antigo.tipomovimentacao
           : item.tipoMovimentacao || "saida";
         const quantidadeNova = Number(item.quantidade);
         const tipoNovo = item.tipoMovimentacao || "saida";
 
         // Buscar estoque atual
         const estoque = await EstoqueLoja.findOne({
-          where: { lojaId: movimentacao.lojaId, produtoId: item.produtoId },
+          where: { lojaid: movimentacao.lojaid, produtoid: item.produtoId },
         });
         if (estoque) {
           let novaQuantidade = estoque.quantidade;
@@ -247,8 +245,8 @@ export const editarMovimentacaoEstoqueLoja = async (req, res) => {
             novaQuantidade = 0;
           }
           await EstoqueLoja.create({
-            lojaId: movimentacao.lojaId,
-            produtoId: item.produtoId,
+            lojaid: movimentacao.lojaid,
+            produtoid: item.produtoId,
             quantidade: novaQuantidade,
           });
         }
@@ -260,11 +258,18 @@ export const editarMovimentacaoEstoqueLoja = async (req, res) => {
       movimentacao.id,
       {
         include: [
-          { model: Loja, as: "loja", attributes: ["id", "nome", "empresaId"] },
+          { model: Loja, as: "loja", attributes: ["id", "nome", "empresaid"] },
           { model: Usuario, as: "usuario", attributes: ["id", "nome"] },
           {
             model: MovimentacaoEstoqueLojaProduto,
             as: "produtosEnviados",
+            attributes: [
+              "id",
+              "quantidade",
+              "tipomovimentacao",
+              "produtoid",
+              "movimentacaoestoquelojaid",
+            ],
             include: [
               { model: Produto, as: "produto", attributes: ["id", "nome"] },
             ],
@@ -291,14 +296,14 @@ export const deletarMovimentacaoEstoqueLoja = async (req, res) => {
 
     // Buscar todos os produtos associados à movimentação
     const produtosMovimentados = await MovimentacaoEstoqueLojaProduto.findAll({
-      where: { movimentacaoEstoqueLojaId: movimentacao.id },
+      where: { movimentacaoestoquelojaid: movimentacao.id },
     });
 
     // Atualizar o estoque da loja para cada produto
     const { EstoqueLoja } = await import("../models/index.js");
     for (const item of produtosMovimentados) {
       const estoque = await EstoqueLoja.findOne({
-        where: { lojaId: movimentacao.lojaId, produtoId: item.produtoId },
+        where: { lojaid: movimentacao.lojaid, produtoid: item.produtoid },
       });
       if (estoque) {
         let novaQuantidade = estoque.quantidade;
@@ -316,7 +321,7 @@ export const deletarMovimentacaoEstoqueLoja = async (req, res) => {
 
     // Remove os produtos associados
     await MovimentacaoEstoqueLojaProduto.destroy({
-      where: { movimentacaoEstoqueLojaId: movimentacao.id },
+      where: { movimentacaoestoquelojaid: movimentacao.id },
     });
 
     // Remove a movimentação
