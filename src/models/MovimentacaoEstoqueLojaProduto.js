@@ -25,17 +25,20 @@ const MovimentacaoEstoqueLojaProduto = sequelize.define(
         model: "produtos",
         key: "id",
       },
+      field: "produtoid",
     },
     quantidade: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
+      field: "quantidade",
     },
     tipoMovimentacao: {
       type: DataTypes.ENUM("entrada", "saida"),
       allowNull: false,
       defaultValue: "saida",
       comment: "Tipo da movimentação: entrada ou saída",
+      field: "tipomovimentacao",
     },
   },
   {
