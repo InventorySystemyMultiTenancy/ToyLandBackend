@@ -34,7 +34,14 @@ export const listarMovimentacoesEstoqueLoja = async (req, res) => {
     });
     res.json(movimentacoes);
   } catch (error) {
-    res.status(500).json({ error: "Erro ao listar movimentações" });
+    console.error("[ERRO listarMovimentacoesEstoqueLoja]", error);
+    res
+      .status(500)
+      .json({
+        error: "Erro ao listar movimentações",
+        details: error.message,
+        stack: error.stack,
+      });
   }
 };
 
