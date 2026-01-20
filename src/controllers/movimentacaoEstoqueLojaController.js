@@ -19,7 +19,7 @@ export const listarMovimentacoesEstoqueLoja = async (req, res) => {
         "usuarioid",
         "observacao",
         "datamovimentacao",
-        "atualizadoEm",
+        "atualizadoem",
       ],
       include: [
         { model: Loja, as: "loja", attributes: ["id", "nome", "empresaid"] },
