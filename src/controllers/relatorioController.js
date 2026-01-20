@@ -12,10 +12,17 @@ export const dashboardRelatorio = async (req, res) => {
   try {
     const { lojaId, dataInicio, dataFim } = req.query;
     // Buscar configurações da empresa
-    const { Empresa } = await import("../models/index.js");
+    const {
+      Empresa,
+      Movimentacao,
+      MovimentacaoProduto,
+      Maquina,
+      Produto,
+      Op,
+      fn,
+      col,
+    } = await import("../models/index.js");
     const empresa = await Empresa.findByPk(req.empresaId);
-
-    // ...existing code...
 
     // 1. Configuração de Datas
     const fim = dataFim ? new Date(`${dataFim}T23:59:59`) : new Date();
@@ -23,21 +30,97 @@ export const dashboardRelatorio = async (req, res) => {
       ? new Date(`${dataInicio}T00:00:00`)
       : new Date(new Date().setDate(fim.getDate() - 30));
 
-    // ...existing code...
+    // 2. Configuração de filtros WHERE
+    const whereMovimentacao = {
+      dataColeta: {
+        [Op.between]: [inicio, fim],
+      },
+    };
+
+    const whereMaquina = {};
+    if (lojaId) {
+      whereMaquina.lojaId = lojaId;
+    }
 
     // --- QUERY 1: TOTAIS GERAIS ---
-    // ...existing code...
+    const totaisRaw = await Movimentacao.findOne({
+      attributes: [
+        [fn("SUM", col("valorFaturado")), "faturamento"],
+        [fn("SUM", col("sairam")), "saidas"],
+        [fn("SUM", col("fichas")), "fichas"],
+      ],
+      include: [
+        {
+          model: Maquina,
+          as: "maquina",
+          where: whereMaquina,
+          attributes: [],
+        },
+      ],
+      where: whereMovimentacao,
+      raw: true,
+    });
 
-    // --- QUERY 2: CUSTO TOTAL ---
-    // ...existing code...
+    const faturamento = parseFloat(totaisRaw?.faturamento || 0);
+    const saidas = parseInt(totaisRaw?.saidas || 0);
+    const fichas = parseInt(totaisRaw?.fichas || 0);
 
-    // --- QUERY 3: GRÁFICO FINANCEIRO ---
-    // ...existing code...
+    // --- QUERY 2: CUSTO TOTAL (estimativa via produtos abastecidos) ---
+    const custoRaw = await MovimentacaoProduto.findOne({
+      attributes: [
+        [
+          fn(
+            "SUM",
+            Sequelize.literal(
+              '"quantidadeAbastecida" * "produto"."custounitario"',
+            ),
+          ),
+          "custoTotal",
+        ],
+      ],
+      include: [
+        { model: Produto, as: "produto", attributes: [] },
+        {
+          model: Movimentacao,
+          attributes: [],
+          where: whereMovimentacao,
+          include: [
+            {
+              model: Maquina,
+              as: "maquina",
+              where: whereMaquina,
+              attributes: [],
+            },
+          ],
+        },
+      ],
+      raw: true,
+    });
 
-    // --- QUERY 4: PERFORMANCE POR MÁQUINA (Corrigido) ---
-    // ...existing code...
-    // Aqui estava um erro de bloco: a chave de fechamento do 'attributes' não deve fechar o objeto principal.
-    // O correto é:
+    const custo = parseFloat(custoRaw?.custoTotal || 0);
+    const lucro = faturamento - custo;
+
+    // --- QUERY 3: GRÁFICO FINANCEIRO (Timeline por dia) ---
+    const timelineRaw = await Movimentacao.findAll({
+      attributes: [
+        [fn("DATE", col("dataColeta")), "data"],
+        [fn("SUM", col("valorFaturado")), "faturamento"],
+      ],
+      include: [
+        {
+          model: Maquina,
+          as: "maquina",
+          where: whereMaquina,
+          attributes: [],
+        },
+      ],
+      where: whereMovimentacao,
+      group: [fn("DATE", col("dataColeta"))],
+      order: [[fn("DATE", col("dataColeta")), "ASC"]],
+      raw: true,
+    });
+
+    // --- QUERY 4: PERFORMANCE POR MÁQUINA ---
     const performanceRaw = await Movimentacao.findAll({
       attributes: [
         [Sequelize.col("maquina.id"), "id"],
