@@ -225,6 +225,8 @@ import {
 // Alertas de inconsistência de movimentação
 export const buscarAlertasDeInconsistencia = async (req, res) => {
   console.log("--- INICIANDO ALERTAS DE INCONSISTÊNCIA ---");
+  console.log("[ALERTAS] EmpresaId:", req.empresaId);
+  console.log("[ALERTAS] UsuarioId:", req.usuario?.id);
   try {
     const usuarioId = req.usuario?.id;
 
@@ -233,17 +235,25 @@ export const buscarAlertasDeInconsistencia = async (req, res) => {
     if (req.empresaId !== "000001") {
       whereMaquinas.empresaId = req.empresaId;
     }
+    console.log("[ALERTAS] Where máquinas:", JSON.stringify(whereMaquinas));
 
     const maquinas = await Maquina.findAll({ where: whereMaquinas });
+    console.log("[ALERTAS] Máquinas encontradas:", maquinas.length);
     const alertas = [];
 
     // Buscar alertas ignorados pelo usuário
     const ignorados = await AlertaIgnorado.findAll({
       where: usuarioId ? { usuarioId } : {},
     });
+    console.log("[ALERTAS] Alertas ignorados:", ignorados.length);
+    console.log("[ALERTAS] Alertas ignorados:", ignorados.length);
     const ignoradosSet = new Set(ignorados.map((a) => a.alertaId));
 
+    console.log("[ALERTAS] Iniciando loop de máquinas...");
     for (const maquina of maquinas) {
+      console.log(
+        `[ALERTAS] Processando máquina ${maquina.id} - ${maquina.nome}`,
+      );
       // Busca as duas últimas movimentações da máquina, ordenadas por data decrescente
       const movimentacoes = await Movimentacao.findAll({
         where: { maquinaId: maquina.id },
@@ -295,8 +305,11 @@ export const buscarAlertasDeInconsistencia = async (req, res) => {
       }
     }
 
+    console.log("[ALERTAS] Alertas encontrados:", alertas.length);
     res.json({ alertas });
   } catch (error) {
+    console.error("[ALERTAS] ERRO:", error);
+    console.error("[ALERTAS] Stack:", error.stack);
     res.status(500).json({
       error: "Erro ao buscar alertas de movimentação",
       message: error.message,
