@@ -639,6 +639,10 @@ export const relatorioImpressao = async (req, res) => {
       return res.status(404).json({ error: "Loja não encontrada" });
     }
 
+    // Buscar informações da empresa
+    const { Empresa } = await import("../models/index.js");
+    const empresa = await Empresa.findByPk(req.empresaId);
+
     // Buscar todas as movimentações da loja no período
     const movimentacoes = await Movimentacao.findAll({
       where: {
