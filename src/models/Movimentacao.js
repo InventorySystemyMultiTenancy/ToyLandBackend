@@ -38,6 +38,7 @@ const Movimentacao = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
+      field: "totalpre",
       comment: "Quantidade antes da coleta",
     },
     sairam: {

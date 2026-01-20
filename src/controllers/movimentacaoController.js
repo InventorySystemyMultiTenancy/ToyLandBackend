@@ -259,6 +259,11 @@ export const listarMovimentacoes = async (req, res) => {
 
     const where = {};
 
+    // Multitenancy: filtra por empresaId do subdomínio
+    if (req.empresaId && req.empresaId !== "000001") {
+      where.empresaId = req.empresaId;
+    }
+
     if (maquinaId) {
       where.maquinaId = maquinaId;
     }
