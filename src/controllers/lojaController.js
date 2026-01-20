@@ -3,10 +3,16 @@ import { Loja, Maquina, UsuarioLoja } from "../models/index.js";
 // US04 - Listar todas as lojas
 export const listarLojas = async (req, res) => {
   try {
+    console.log("[LOJAS] Listando lojas para empresaId:", req.empresaId);
+    console.log("[LOJAS] Usuário:", req.usuario?.email);
+
     let where = {};
     if (req.empresaId !== "000001") {
       where.empresaId = req.empresaId;
     }
+
+    console.log("[LOJAS] Filtro WHERE:", JSON.stringify(where));
+
     const lojas = await Loja.findAll({
       where,
       include: [
@@ -18,6 +24,8 @@ export const listarLojas = async (req, res) => {
       ],
       order: [["nome", "ASC"]],
     });
+
+    console.log("[LOJAS] Retornando", lojas.length, "lojas");
     res.json(lojas);
   } catch (error) {
     console.error("Erro ao listar lojas:", error);

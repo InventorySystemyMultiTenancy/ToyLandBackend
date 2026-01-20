@@ -53,6 +53,10 @@ export const autenticar = async (req, res, next) => {
         .json({ error: "Empresa inativa ou não encontrada" });
     }
 
+    console.log(
+      `[AUTH] Usuário autenticado: ${usuario.email} | EmpresaId: ${usuario.empresaId} | Empresa: ${usuario.empresa?.nome}`,
+    );
+
     req.usuario = usuario;
     req.empresaId = usuario.empresaId;
     next();
