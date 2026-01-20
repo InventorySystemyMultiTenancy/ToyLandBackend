@@ -89,6 +89,7 @@ const Movimentacao = sequelize.define(
     valorFaturado: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
+      field: "valorfaturado",
       comment: "Calculado automaticamente: fichas * valorFicha",
     },
 
