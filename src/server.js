@@ -40,9 +40,9 @@ app.use(
       // Permitir requisições sem origin (como mobile apps, Postman, curl)
       if (!origin) return callback(null, true);
 
-      // Permitir qualquer subdomínio de selfmachine.com.br
+      // Permitir qualquer subdomínio OU domínio raiz de selfmachine.com.br
       const selfmachineRegex =
-        /^https?:\/\/[a-zA-Z0-9-]+\.selfmachine\.com\.br(:\d+)?$/;
+        /^https?:\/\/([a-zA-Z0-9-]+\.)*selfmachine\.com\.br(:\d+)?$/;
       if (
         allowedOrigins.includes(origin) ||
         allowedOrigins.includes("*") ||
