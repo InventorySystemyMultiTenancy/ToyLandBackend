@@ -25,6 +25,7 @@ const MovimentacaoEstoqueLoja = sequelize.define(
         model: "usuarios",
         key: "id",
       },
+      field: "usuarioid",
     },
     observacao: {
       type: DataTypes.STRING,
