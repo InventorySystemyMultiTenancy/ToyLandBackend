@@ -6,37 +6,53 @@ export const login = async (req, res) => {
   try {
     const { email, senha, subdomain } = req.body;
 
+    console.log("[LOGIN] Tentativa de login:", { email, subdomain });
+
     if (!email || !senha) {
+      console.log("[LOGIN] Email ou senha não fornecidos");
       return res.status(400).json({ error: "Email e senha são obrigatórios" });
     }
 
     const usuario = await Usuario.findOne({ where: { email } });
 
+    console.log(
+      "[LOGIN] Usuário encontrado:",
+      usuario
+        ? `ID: ${usuario.id}, Role: ${usuario.role}, Ativo: ${usuario.ativo}`
+        : "NÃO ENCONTRADO",
+    );
+
     // Se o login for pelo subdomínio superadminpage, só permite SUPER_ADMIN
     if (subdomain === "superadminpage" && usuario?.role !== "SUPER_ADMIN") {
+      console.log("[LOGIN] Acesso negado - não é SUPER_ADMIN");
       return res
         .status(403)
         .json({ error: "Acesso restrito ao SUPER_ADMIN neste subdomínio." });
     }
 
     if (!usuario) {
+      console.log("[LOGIN] Falha - usuário não encontrado");
       return res.status(401).json({ error: "Credenciais inválidas" });
     }
 
     if (!usuario.ativo) {
+      console.log("[LOGIN] Falha - usuário inativo");
       return res.status(401).json({ error: "Usuário inativo" });
     }
 
     const senhaValida = await usuario.verificarSenha(senha);
 
+    console.log("[LOGIN] Senha válida:", senhaValida);
+
     if (!senhaValida) {
+      console.log("[LOGIN] Falha - senha inválida");
       return res.status(401).json({ error: "Credenciais inválidas" });
     }
 
     const token = jwt.sign(
       { id: usuario.id, email: usuario.email, role: usuario.role },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
     );
 
     // Registrar log de login
@@ -96,7 +112,7 @@ export const registrar = async (req, res) => {
     const token = jwt.sign(
       { id: usuario.id, email: usuario.email, role: usuario.role },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
     );
 
     res.status(201).json({
