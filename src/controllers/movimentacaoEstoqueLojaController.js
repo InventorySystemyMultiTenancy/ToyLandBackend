@@ -8,13 +8,13 @@ export const listarMovimentacoesEstoqueLoja = async (req, res) => {
     let where = {};
     if (req.empresaId !== "000001") {
       // só traz movimentações das lojas da empresa
-      where.empresaId = req.empresaId;
+      where.empresaid = req.empresaId;
     }
     const movimentacoes = await MovimentacaoEstoqueLoja.findAll({
       where,
-      order: [["dataMovimentacao", "DESC"]],
+      order: [["datamovimentacao", "DESC"]],
       include: [
-        { model: Loja, as: "loja", attributes: ["id", "nome", "empresaId"] },
+        { model: Loja, as: "loja", attributes: ["id", "nome", "empresaid"] },
         { model: Usuario, as: "usuario", attributes: ["id", "nome"] },
         {
           model: MovimentacaoEstoqueLojaProduto,
