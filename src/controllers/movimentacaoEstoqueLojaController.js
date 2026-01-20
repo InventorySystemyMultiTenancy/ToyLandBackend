@@ -13,6 +13,14 @@ export const listarMovimentacoesEstoqueLoja = async (req, res) => {
     const movimentacoes = await MovimentacaoEstoqueLoja.findAll({
       where,
       order: [["datamovimentacao", "DESC"]],
+      attributes: [
+        "id",
+        "lojaid",
+        "usuarioid",
+        "observacao",
+        "datamovimentacao",
+        "atualizadoEm",
+      ],
       include: [
         { model: Loja, as: "loja", attributes: ["id", "nome", "empresaid"] },
         { model: Usuario, as: "usuario", attributes: ["id", "nome"] },
