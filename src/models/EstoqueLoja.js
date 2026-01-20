@@ -39,6 +39,7 @@ const EstoqueLoja = sequelize.define(
       allowNull: true,
       defaultValue: 0,
       comment: "Estoque mínimo para alerta",
+      field: "estoqueminimo",
     },
     ativo: {
       type: DataTypes.BOOLEAN,
@@ -56,7 +57,7 @@ const EstoqueLoja = sequelize.define(
         fields: ["lojaId", "produtoId"],
       },
     ],
-  }
+  },
 );
 
 export default EstoqueLoja;
