@@ -122,6 +122,7 @@ const Movimentacao = sequelize.define(
     tipoOcorrencia: {
       type: DataTypes.STRING(50),
       allowNull: true,
+      field: "tipoocorrencia",
       comment: "Ex: Normal, Manutenção, Troca de Máquina, Problema",
     },
 
