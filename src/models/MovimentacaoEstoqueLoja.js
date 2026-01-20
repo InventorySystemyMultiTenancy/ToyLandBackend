@@ -16,6 +16,7 @@ const MovimentacaoEstoqueLoja = sequelize.define(
         model: "lojas",
         key: "id",
       },
+      field: "lojaid",
     },
     usuarioId: {
       type: DataTypes.UUID,
@@ -44,7 +45,7 @@ const MovimentacaoEstoqueLoja = sequelize.define(
     timestamps: true,
     createdAt: "dataMovimentacao",
     updatedAt: "atualizadoEm",
-  }
+  },
 );
 
 export default MovimentacaoEstoqueLoja;
