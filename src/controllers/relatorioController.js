@@ -646,6 +646,7 @@ export const relatorioImpressao = async (req, res) => {
     // Buscar todas as movimentações da loja no período
     const movimentacoes = await Movimentacao.findAll({
       where: {
+        empresaid: req.empresaId,
         dataColeta: {
           [Op.between]: [inicio, fim],
         },
@@ -654,7 +655,7 @@ export const relatorioImpressao = async (req, res) => {
         {
           model: Maquina,
           as: "maquina",
-          where: { lojaId },
+          where: { lojaid: lojaId },
           attributes: ["id", "codigo", "nome"],
         },
         {
@@ -683,6 +684,14 @@ export const relatorioImpressao = async (req, res) => {
     );
     const totalAbastecidas = movimentacoes.reduce(
       (sum, m) => sum + (m.abastecidas || 0),
+      0,
+    );
+    const totalDinheiro = movimentacoes.reduce(
+      (sum, m) => sum + parseFloat(m.quantidade_notas_entrada || 0),
+      0,
+    );
+    const totalPix = movimentacoes.reduce(
+      (sum, m) => sum + parseFloat(m.valor_entrada_maquininha_pix || 0),
       0,
     );
 
@@ -823,6 +832,8 @@ export const relatorioImpressao = async (req, res) => {
       },
       totais: {
         fichas: totalFichas,
+        dinheiro: totalDinheiro,
+        pix: totalPix,
         produtosSairam: totalSairam,
         produtosEntraram: totalAbastecidas,
         movimentacoes: movimentacoes.length,
