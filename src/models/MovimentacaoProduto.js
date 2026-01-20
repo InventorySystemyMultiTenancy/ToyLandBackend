@@ -40,6 +40,7 @@ const MovimentacaoProduto = sequelize.define(
       allowNull: false,
       defaultValue: 0,
       comment: "Quantidade deste produto que foi abastecida",
+      field: "quantidadeabastecida",
     },
   },
   {
