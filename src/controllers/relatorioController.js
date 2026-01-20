@@ -227,7 +227,14 @@ export const buscarAlertasDeInconsistencia = async (req, res) => {
   console.log("--- INICIANDO ALERTAS DE INCONSISTÊNCIA ---");
   try {
     const usuarioId = req.usuario?.id;
-    const maquinas = await Maquina.findAll({ where: { ativo: true } });
+
+    // Filtrar máquinas por empresa (exceto SUPER_ADMIN)
+    const whereMaquinas = { ativo: true };
+    if (req.empresaId !== "000001") {
+      whereMaquinas.empresaid = req.empresaId;
+    }
+
+    const maquinas = await Maquina.findAll({ where: whereMaquinas });
     const alertas = [];
 
     // Buscar alertas ignorados pelo usuário

@@ -7,7 +7,7 @@ export const listarUsuarios = async (req, res) => {
     const { role, ativo, busca } = req.query;
     let where = {};
     if (req.empresaId !== "000001") {
-      where.empresaId = req.empresaId;
+      where.empresaid = req.empresaId;
     }
     if (role) {
       where.role = role;
@@ -197,7 +197,7 @@ export const atualizarUsuario = async (req, res) => {
       email,
       telefone,
       role,
-      ativo
+      ativo,
     });
 
     // Gerenciar permissões de loja

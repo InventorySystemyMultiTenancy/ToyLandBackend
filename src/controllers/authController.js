@@ -43,6 +43,11 @@ export const login = async (req, res) => {
     const senhaValida = await usuario.verificarSenha(senha);
 
     console.log("[LOGIN] Senha válida:", senhaValida);
+    console.log(
+      "[LOGIN] Hash da senha armazenada:",
+      usuario.senha?.substring(0, 20) + "...",
+    );
+    console.log("[LOGIN] Comprimento do hash:", usuario.senha?.length);
 
     if (!senhaValida) {
       console.log("[LOGIN] Falha - senha inválida");

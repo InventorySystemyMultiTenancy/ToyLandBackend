@@ -1,4 +1,6 @@
 import { Produto } from "../models/index.js";
+import { sequelize } from "../database/connection.js";
+import { Op } from "sequelize";
 
 // US06 - Listar produtos
 export const listarProdutos = async (req, res) => {
@@ -6,7 +8,7 @@ export const listarProdutos = async (req, res) => {
     const { categoria, incluirInativos } = req.query;
     let where = {};
     if (req.empresaId !== "000001") {
-      where.empresaId = req.empresaId;
+      where.empresaid = req.empresaId;
     }
     if (categoria) {
       where.categoria = categoria;
@@ -75,11 +77,9 @@ export const criarProduto = async (req, res) => {
     let empresaId = req.empresaId;
     if (req.empresaId === "000001") {
       if (!req.body.empresaId) {
-        return res
-          .status(400)
-          .json({
-            error: "SUPER_ADMIN deve informar empresaId ao criar produto",
-          });
+        return res.status(400).json({
+          error: "SUPER_ADMIN deve informar empresaId ao criar produto",
+        });
       }
       empresaId = req.body.empresaId;
     }
@@ -197,13 +197,20 @@ export const deletarProduto = async (req, res) => {
 // Listar categorias únicas
 export const listarCategorias = async (req, res) => {
   try {
+    const where = {
+      categoria: { [Op.ne]: null },
+    };
+
+    // Filtrar por empresa (exceto SUPER_ADMIN)
+    if (req.empresaId !== "000001") {
+      where.empresaid = req.empresaId;
+    }
+
     const categorias = await Produto.findAll({
       attributes: [
         [sequelize.fn("DISTINCT", sequelize.col("categoria")), "categoria"],
       ],
-      where: {
-        categoria: { [sequelize.Op.ne]: null },
-      },
+      where,
       raw: true,
     });
 

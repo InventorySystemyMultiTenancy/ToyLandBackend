@@ -5,15 +5,22 @@ export const listarMaquinas = async (req, res) => {
   try {
     const { lojaId, incluirInativas } = req.query;
     let where = {};
+
+    // Filtrar por empresa (exceto SUPER_ADMIN)
     if (req.empresaId !== "000001") {
-      // Só filtra por loja se não for superadmin
-      if (lojaId) where.lojaId = lojaId;
-    } else {
-      if (lojaId) where.lojaId = lojaId; // superadmin pode filtrar por loja opcionalmente
+      where.empresaid = req.empresaId;
     }
+
+    // Filtrar por loja se especificado
+    if (lojaId) {
+      where.lojaid = lojaId;
+    }
+
+    // Filtrar por ativo
     if (incluirInativas !== "true") {
       where.ativo = true;
     }
+
     const maquinas = await Maquina.findAll({
       where,
       attributes: { exclude: [] }, // Inclui todos os atributos da máquina, inclusive lojaId
