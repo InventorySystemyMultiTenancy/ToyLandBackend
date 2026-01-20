@@ -71,6 +71,7 @@ const Movimentacao = sequelize.define(
     contadorMaquina: {
       type: DataTypes.INTEGER,
       allowNull: true,
+      field: "contadormaquina",
       comment: "Valor do contador da máquina",
     },
     contadorIn: {
