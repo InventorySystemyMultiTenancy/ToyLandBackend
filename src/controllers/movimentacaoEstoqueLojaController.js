@@ -14,11 +14,18 @@ export const listarMovimentacoesEstoqueLoja = async (req, res) => {
       where,
       order: [["dataMovimentacao", "DESC"]],
       include: [
-        { model: Loja, as: "loja", attributes: ["id", "nome"] },
+        { model: Loja, as: "loja", attributes: ["id", "nome", "empresaId"] },
         { model: Usuario, as: "usuario", attributes: ["id", "nome"] },
         {
           model: MovimentacaoEstoqueLojaProduto,
           as: "produtosEnviados",
+          attributes: [
+            "id",
+            "quantidade",
+            "tipomovimentacao",
+            "produtoid",
+            "movimentacaoestoquelojaid",
+          ],
           include: [
             { model: Produto, as: "produto", attributes: ["id", "nome"] },
           ],
@@ -118,6 +125,13 @@ export const criarMovimentacaoEstoqueLoja = async (req, res) => {
           {
             model: MovimentacaoEstoqueLojaProduto,
             as: "produtosEnviados",
+            attributes: [
+              "id",
+              "quantidade",
+              "tipomovimentacao",
+              "produtoid",
+              "movimentacaoestoquelojaid",
+            ],
             include: [
               { model: Produto, as: "produto", attributes: ["id", "nome"] },
             ],
