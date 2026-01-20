@@ -30,7 +30,7 @@ export const dashboardRelatorio = async (req, res) => {
     // --- QUERY 1: TOTAIS GERAIS ---
     const totaisRaw = await Movimentacao.findOne({
       attributes: [
-        [fn("SUM", col("valorFaturado")), "faturamento"],
+        [fn("SUM", col("valorfaturado")), "faturamento"],
         [fn("SUM", col("sairam")), "saidas"],
         [fn("SUM", col("fichas")), "fichas"],
       ],
@@ -89,7 +89,7 @@ export const dashboardRelatorio = async (req, res) => {
     const timelineRaw = await Movimentacao.findAll({
       attributes: [
         [fn("DATE", col("dataColeta")), "data"],
-        [fn("SUM", col("valorFaturado")), "faturamento"],
+        [fn("SUM", col("valorfaturado")), "faturamento"],
       ],
       include: [
         {
@@ -111,7 +111,7 @@ export const dashboardRelatorio = async (req, res) => {
         [Sequelize.col("maquina.id"), "id"],
         [Sequelize.col("maquina.nome"), "nome"],
         [Sequelize.col("maquina.capacidadePadrao"), "capacidadePadrao"],
-        [Sequelize.fn("SUM", Sequelize.col("valorFaturado")), "faturamento"],
+        [Sequelize.fn("SUM", Sequelize.col("valorfaturado")), "faturamento"],
       ],
       include: [
         {
