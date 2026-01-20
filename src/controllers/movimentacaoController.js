@@ -226,6 +226,13 @@ export const registrarMovimentacao = async (req, res) => {
         {
           model: MovimentacaoProduto,
           as: "detalhesProdutos",
+          attributes: [
+            "id",
+            "quantidadesaiu",
+            "quantidadeabastecida",
+            "produtoid",
+            "movimentacaoid",
+          ],
           include: [
             {
               model: Produto,
@@ -296,6 +303,13 @@ export const listarMovimentacoes = async (req, res) => {
       {
         model: MovimentacaoProduto,
         as: "detalhesProdutos",
+        attributes: [
+          "id",
+          "quantidadesaiu",
+          "quantidadeabastecida",
+          "produtoid",
+          "movimentacaoid",
+        ],
         include: [
           {
             model: Produto,
@@ -349,6 +363,13 @@ export const obterMovimentacao = async (req, res) => {
         {
           model: MovimentacaoProduto,
           as: "detalhesProdutos",
+          attributes: [
+            "id",
+            "quantidadesaiu",
+            "quantidadeabastecida",
+            "produtoid",
+            "movimentacaoid",
+          ],
           include: [
             {
               model: Produto,

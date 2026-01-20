@@ -32,6 +32,7 @@ const MovimentacaoProduto = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
+      field: "quantidadesaiu",
       comment: "Quantidade deste produto específico que saiu",
     },
     quantidadeAbastecida: {
