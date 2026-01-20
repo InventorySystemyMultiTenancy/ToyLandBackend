@@ -332,6 +332,8 @@ export const balançoSemanal = async (req, res) => {
   try {
     const { lojaId, dataInicio, dataFim } = req.query;
 
+    console.log("[BALANÇO SEMANAL] EmpresaId:", req.empresaId);
+
     // Definir período padrão (últimos 7 dias)
     const fim = dataFim ? new Date(dataFim) : new Date();
     const inicio = dataInicio
@@ -343,6 +345,13 @@ export const balançoSemanal = async (req, res) => {
         [Op.between]: [inicio, fim],
       },
     };
+
+    // Filtrar por empresa (exceto SUPER_ADMIN)
+    if (req.empresaId !== "000001") {
+      whereMovimentacao.empresaId = req.empresaId;
+    }
+
+    console.log("[BALANÇO SEMANAL] WHERE:", JSON.stringify(whereMovimentacao));
 
     const includeMaquina = {
       model: Maquina,
@@ -379,6 +388,11 @@ export const balançoSemanal = async (req, res) => {
         },
       ],
     });
+
+    console.log(
+      "[BALANÇO SEMANAL] Movimentações encontradas:",
+      movimentacoes.length,
+    );
 
     // Calcular totais gerais
     const totais = movimentacoes.reduce(
@@ -480,6 +494,11 @@ export const alertasEstoque = async (req, res) => {
     const { lojaId } = req.query;
     const whereMaquina = { ativo: true };
 
+    // Filtrar por empresa (exceto SUPER_ADMIN)
+    if (req.empresaId !== "000001") {
+      whereMaquina.empresaId = req.empresaId;
+    }
+
     if (lojaId) {
       whereMaquina.lojaId = lojaId;
     }
@@ -564,7 +583,15 @@ export const performanceMaquinas = async (req, res) => {
       },
     };
 
+    // Filtrar por empresa (exceto SUPER_ADMIN)
+    if (req.empresaId !== "000001") {
+      whereMovimentacao.empresaId = req.empresaId;
+    }
+
     const whereMaquina = {};
+    if (req.empresaId !== "000001") {
+      whereMaquina.empresaId = req.empresaId;
+    }
     if (lojaId) {
       whereMaquina.lojaId = lojaId;
     }
