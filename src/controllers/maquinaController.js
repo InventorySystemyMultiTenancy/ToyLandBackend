@@ -10,10 +10,18 @@ export const listarMaquinas = async (req, res) => {
     if (req.empresaId !== "000001") {
       where.empresaId = req.empresaId;
     }
-    
+
     // Filtrar por loja se especificado
     if (lojaId) {
       where.lojaId = lojaId;
+    }
+
+    // Filtrar por ativo
+    if (incluirInativas !== "true") {
+      where.ativo = true;
+    }
+
+    const maquinas = await Maquina.findAll({
       where,
       attributes: { exclude: [] }, // Inclui todos os atributos da máquina, inclusive lojaId
       include: [
