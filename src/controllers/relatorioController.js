@@ -260,8 +260,12 @@ export const buscarAlertasDeInconsistencia = async (req, res) => {
         `[ALERTAS] Processando máquina ${maquina.id} - ${maquina.nome}`,
       );
       // Busca as duas últimas movimentações da máquina, ordenadas por data decrescente
+      const whereMovimentacoes = { maquinaId: maquina.id };
+      if (req.empresaId !== "000001") {
+        whereMovimentacoes.empresaId = req.empresaId;
+      }
       const movimentacoes = await Movimentacao.findAll({
-        where: { maquinaId: maquina.id },
+        where: whereMovimentacoes,
         order: [["dataColeta", "DESC"]],
         limit: 2,
         attributes: [
