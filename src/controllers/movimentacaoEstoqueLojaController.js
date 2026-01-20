@@ -120,7 +120,7 @@ export const criarMovimentacaoEstoqueLoja = async (req, res) => {
       movimentacao.id,
       {
         include: [
-          { model: Loja, as: "loja", attributes: ["id", "nome"] },
+          { model: Loja, as: "loja", attributes: ["id", "nome", "empresaId"] },
           { model: Usuario, as: "usuario", attributes: ["id", "nome"] },
           {
             model: MovimentacaoEstoqueLojaProduto,
@@ -253,7 +253,7 @@ export const editarMovimentacaoEstoqueLoja = async (req, res) => {
       movimentacao.id,
       {
         include: [
-          { model: Loja, as: "loja", attributes: ["id", "nome"] },
+          { model: Loja, as: "loja", attributes: ["id", "nome", "empresaId"] },
           { model: Usuario, as: "usuario", attributes: ["id", "nome"] },
           {
             model: MovimentacaoEstoqueLojaProduto,
