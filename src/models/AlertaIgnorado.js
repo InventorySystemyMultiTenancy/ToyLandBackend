@@ -12,6 +12,7 @@ const AlertaIgnorado = sequelize.define(
     maquinaId: {
       type: DataTypes.UUID,
       allowNull: false,
+      field: "maquinaid",
       references: {
         model: "maquinas",
         key: "id",
@@ -20,10 +21,12 @@ const AlertaIgnorado = sequelize.define(
     alertaId: {
       type: DataTypes.STRING,
       allowNull: false,
+      field: "alertaid",
     },
     usuarioId: {
       type: DataTypes.UUID,
       allowNull: false,
+      field: "usuarioid",
       references: {
         model: "usuarios",
         key: "id",
@@ -32,12 +35,13 @@ const AlertaIgnorado = sequelize.define(
     dataIgnorado: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
+      field: "dataignorado",
     },
   },
   {
     tableName: "alertas_ignorados",
     timestamps: true,
-  }
+  },
 );
 
 export default AlertaIgnorado;

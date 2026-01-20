@@ -56,17 +56,28 @@ export const atualizarEstoqueLoja = async (req, res) => {
         .json({ error: "Quantidade não pode ser negativa" });
     }
 
-    // Verificar se loja e produto existem
-    const loja = await Loja.findByPk(lojaId);
+    // Verificar se loja e produto existem E PERTENCEM À EMPRESA
+    const whereLoja = { id: lojaId };
+    if (req.empresaId !== "000001") {
+      whereLoja.empresaId = req.empresaId;
+    }
+    const loja = await Loja.findOne({ where: whereLoja });
     if (!loja) {
-      console.log("❌ [atualizarEstoqueLoja] Loja não encontrada:", lojaId);
+      console.log(
+        "❌ [atualizarEstoqueLoja] Loja não encontrada ou não pertence à empresa:",
+        lojaId,
+      );
       return res.status(404).json({ error: "Loja não encontrada" });
     }
 
-    const produto = await Produto.findByPk(produtoId);
+    const whereProduto = { id: produtoId };
+    if (req.empresaId !== "000001") {
+      whereProduto.empresaId = req.empresaId;
+    }
+    const produto = await Produto.findOne({ where: whereProduto });
     if (!produto) {
       console.log(
-        "❌ [atualizarEstoqueLoja] Produto não encontrado:",
+        "❌ [atualizarEstoqueLoja] Produto não encontrado ou não pertence à empresa:",
         produtoId,
       );
       return res.status(404).json({ error: "Produto não encontrado" });
@@ -162,21 +173,29 @@ export const criarOuAtualizarProdutoEstoque = async (req, res) => {
         .json({ error: "Quantidade não pode ser negativa" });
     }
 
-    // Verificar se loja existe
-    const loja = await Loja.findByPk(lojaId);
+    // Verificar se loja existe E PERTENCE À EMPRESA
+    const whereLoja = { id: lojaId };
+    if (req.empresaId !== "000001") {
+      whereLoja.empresaId = req.empresaId;
+    }
+    const loja = await Loja.findOne({ where: whereLoja });
     if (!loja) {
       console.log(
-        "❌ [criarOuAtualizarProdutoEstoque] Loja não encontrada:",
+        "❌ [criarOuAtualizarProdutoEstoque] Loja não encontrada ou não pertence à empresa:",
         lojaId,
       );
       return res.status(404).json({ error: "Loja não encontrada" });
     }
 
-    // Verificar se produto existe
-    const produto = await Produto.findByPk(produtoId);
+    // Verificar se produto existe E PERTENCE À EMPRESA
+    const whereProduto = { id: produtoId };
+    if (req.empresaId !== "000001") {
+      whereProduto.empresaId = req.empresaId;
+    }
+    const produto = await Produto.findOne({ where: whereProduto });
     if (!produto) {
       console.log(
-        "❌ [criarOuAtualizarProdutoEstoque] Produto não encontrado:",
+        "❌ [criarOuAtualizarProdutoEstoque] Produto não encontrado ou não pertence à empresa:",
         produtoId,
       );
       return res.status(404).json({ error: "Produto não encontrado" });
@@ -257,8 +276,12 @@ export const atualizarVariosEstoques = async (req, res) => {
       return res.status(400).json({ error: "Array de estoques é obrigatório" });
     }
 
-    // Verificar se loja existe
-    const loja = await Loja.findByPk(lojaId);
+    // Verificar se loja existe E PERTENCE À EMPRESA
+    const whereLoja = { id: lojaId };
+    if (req.empresaId !== "000001") {
+      whereLoja.empresaId = req.empresaId;
+    }
+    const loja = await Loja.findOne({ where: whereLoja });
     if (!loja) {
       return res.status(404).json({ error: "Loja não encontrada" });
     }
@@ -338,6 +361,16 @@ export const deletarEstoqueLoja = async (req, res) => {
   try {
     const { lojaId, produtoId } = req.params;
 
+    // VALIDAR QUE LOJA PERTENCE À EMPRESA
+    const whereLoja = { id: lojaId };
+    if (req.empresaId !== "000001") {
+      whereLoja.empresaId = req.empresaId;
+    }
+    const loja = await Loja.findOne({ where: whereLoja });
+    if (!loja) {
+      return res.status(404).json({ error: "Loja não encontrada" });
+    }
+
     const estoque = await EstoqueLoja.findOne({
       where: { lojaId, produtoId },
     });
@@ -359,6 +392,16 @@ export const deletarEstoqueLoja = async (req, res) => {
 export const alertasEstoqueLoja = async (req, res) => {
   try {
     const { lojaId } = req.params;
+
+    // VALIDAR QUE LOJA PERTENCE À EMPRESA
+    const whereLoja = { id: lojaId };
+    if (req.empresaId !== "000001") {
+      whereLoja.empresaId = req.empresaId;
+    }
+    const loja = await Loja.findOne({ where: whereLoja });
+    if (!loja) {
+      return res.status(404).json({ error: "Loja não encontrada" });
+    }
 
     const estoques = await EstoqueLoja.findAll({
       where: { lojaId },

@@ -48,7 +48,12 @@ export const listarUsuarios = async (req, res) => {
 // Obter usuário por ID (apenas ADMIN)
 export const obterUsuario = async (req, res) => {
   try {
-    const usuario = await Usuario.findByPk(req.params.id, {
+    const whereUsuario = { id: req.params.id };
+    if (req.empresaId !== "000001") {
+      whereUsuario.empresaId = req.empresaId;
+    }
+    const usuario = await Usuario.findOne({
+      where: whereUsuario,
       include: [
         {
           model: UsuarioLoja,
@@ -185,7 +190,11 @@ export const criarUsuario = async (req, res) => {
 export const atualizarUsuario = async (req, res) => {
   try {
     const { nome, email, telefone, role, lojasPermitidas, ativo } = req.body;
-    const usuario = await Usuario.findByPk(req.params.id);
+    const whereUsuario = { id: req.params.id };
+    if (req.empresaId !== "000001") {
+      whereUsuario.empresaId = req.empresaId;
+    }
+    const usuario = await Usuario.findOne({ where: whereUsuario });
 
     if (!usuario) {
       return res.status(404).json({ error: "Usuário não encontrado" });
@@ -250,7 +259,11 @@ export const atualizarUsuario = async (req, res) => {
 // Deletar usuário (apenas ADMIN)
 export const deletarUsuario = async (req, res) => {
   try {
-    const usuario = await Usuario.findByPk(req.params.id);
+    const whereUsuario = { id: req.params.id };
+    if (req.empresaId !== "000001") {
+      whereUsuario.empresaId = req.empresaId;
+    }
+    const usuario = await Usuario.findOne({ where: whereUsuario });
 
     if (!usuario) {
       return res.status(404).json({ error: "Usuário não encontrado" });

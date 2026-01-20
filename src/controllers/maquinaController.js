@@ -130,7 +130,11 @@ export const criarMaquina = async (req, res) => {
 // US05 - Atualizar máquina
 export const atualizarMaquina = async (req, res) => {
   try {
-    const maquina = await Maquina.findByPk(req.params.id);
+    const whereMaquina = { id: req.params.id };
+    if (req.empresaId !== "000001") {
+      whereMaquina.empresaId = req.empresaId;
+    }
+    const maquina = await Maquina.findOne({ where: whereMaquina });
 
     if (!maquina) {
       return res.status(404).json({ error: "Máquina não encontrada" });
@@ -189,7 +193,11 @@ export const atualizarMaquina = async (req, res) => {
 // US05 - Deletar máquina (soft delete na 1ª vez, hard delete na 2ª)
 export const deletarMaquina = async (req, res) => {
   try {
-    const maquina = await Maquina.findByPk(req.params.id);
+    const whereMaquina = { id: req.params.id };
+    if (req.empresaId !== "000001") {
+      whereMaquina.empresaId = req.empresaId;
+    }
+    const maquina = await Maquina.findOne({ where: whereMaquina });
 
     if (!maquina) {
       return res.status(404).json({ error: "Máquina não encontrada" });

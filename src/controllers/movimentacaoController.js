@@ -394,7 +394,13 @@ export const obterMovimentacao = async (req, res) => {
 // Atualizar movimentação (apenas observações e detalhes menores)
 export const atualizarMovimentacao = async (req, res) => {
   try {
-    const movimentacao = await Movimentacao.findByPk(req.params.id);
+    const whereMovimentacao = { id: req.params.id };
+    if (req.empresaId !== "000001") {
+      whereMovimentacao.empresaId = req.empresaId;
+    }
+    const movimentacao = await Movimentacao.findOne({
+      where: whereMovimentacao,
+    });
 
     if (!movimentacao) {
       return res.status(404).json({ error: "Movimentação não encontrada" });
@@ -480,7 +486,13 @@ export const atualizarMovimentacao = async (req, res) => {
 // Deletar movimentação (apenas ADMIN)
 export const deletarMovimentacao = async (req, res) => {
   try {
-    const movimentacao = await Movimentacao.findByPk(req.params.id);
+    const whereMovimentacao = { id: req.params.id };
+    if (req.empresaId !== "000001") {
+      whereMovimentacao.empresaId = req.empresaId;
+    }
+    const movimentacao = await Movimentacao.findOne({
+      where: whereMovimentacao,
+    });
 
     if (!movimentacao) {
       return res.status(404).json({ error: "Movimentação não encontrada" });

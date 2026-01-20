@@ -68,6 +68,20 @@ export const criarMovimentacaoEstoqueLoja = async (req, res) => {
         .json({ error: "Loja e Produtos são obrigatórios." });
     }
 
+    // 1.1 VALIDAR QUE LOJA PERTENCE À EMPRESA
+    const whereLoja = { id: lojaId };
+    if (req.empresaId !== "000001") {
+      whereLoja.empresaId = req.empresaId;
+    }
+    const loja = await Loja.findOne({ where: whereLoja });
+    if (!loja) {
+      console.error(
+        "[ERRO] Loja não encontrada ou não pertence à empresa",
+        lojaId,
+      );
+      return res.status(404).json({ error: "Loja não encontrada" });
+    }
+
     // 2. Criar a Movimentação (Header)
     const movimentacao = await MovimentacaoEstoqueLoja.create({
       lojaid: lojaId,
@@ -170,10 +184,20 @@ export const editarMovimentacaoEstoqueLoja = async (req, res) => {
     const { lojaId, usuarioId, produtos, observacao, dataMovimentacao } =
       req.body;
 
-    const movimentacao = await MovimentacaoEstoqueLoja.findByPk(id);
+    const movimentacao = await MovimentacaoEstoqueLoja.findByPk(id, {
+      include: [{ model: Loja, as: "loja", attributes: ["id", "empresaId"] }],
+    });
 
     if (!movimentacao) {
       return res.status(404).json({ error: "Movimentação não encontrada" });
+    }
+
+    // VALIDAR QUE A MOVIMENTAÇÃO PERTENCE A UMA LOJA DA EMPRESA
+    if (
+      req.empresaId !== "000001" &&
+      movimentacao.loja?.empresaId !== req.empresaId
+    ) {
+      return res.status(403).json({ error: "Acesso negado" });
     }
 
     // Atualiza campos
@@ -297,9 +321,19 @@ export const editarMovimentacaoEstoqueLoja = async (req, res) => {
 export const deletarMovimentacaoEstoqueLoja = async (req, res) => {
   try {
     const { id } = req.params;
-    const movimentacao = await MovimentacaoEstoqueLoja.findByPk(id);
+    const movimentacao = await MovimentacaoEstoqueLoja.findByPk(id, {
+      include: [{ model: Loja, as: "loja", attributes: ["id", "empresaId"] }],
+    });
     if (!movimentacao) {
       return res.status(404).json({ error: "Movimentação não encontrada" });
+    }
+
+    // VALIDAR QUE A MOVIMENTAÇÃO PERTENCE A UMA LOJA DA EMPRESA
+    if (
+      req.empresaId !== "000001" &&
+      movimentacao.loja?.empresaId !== req.empresaId
+    ) {
+      return res.status(403).json({ error: "Acesso negado" });
     }
 
     // Buscar todos os produtos associados à movimentação

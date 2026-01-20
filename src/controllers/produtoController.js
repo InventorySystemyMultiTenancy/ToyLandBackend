@@ -31,7 +31,11 @@ export const listarProdutos = async (req, res) => {
 // US06 - Obter produto por ID
 export const obterProduto = async (req, res) => {
   try {
-    const produto = await Produto.findByPk(req.params.id);
+    const whereProduto = { id: req.params.id };
+    if (req.empresaId !== "000001") {
+      whereProduto.empresaId = req.empresaId;
+    }
+    const produto = await Produto.findOne({ where: whereProduto });
 
     if (!produto) {
       return res.status(404).json({ error: "Produto não encontrado" });
@@ -110,7 +114,11 @@ export const criarProduto = async (req, res) => {
 // US06 - Atualizar produto
 export const atualizarProduto = async (req, res) => {
   try {
-    const produto = await Produto.findByPk(req.params.id);
+    const whereProduto = { id: req.params.id };
+    if (req.empresaId !== "000001") {
+      whereProduto.empresaId = req.empresaId;
+    }
+    const produto = await Produto.findOne({ where: whereProduto });
 
     if (!produto) {
       return res.status(404).json({ error: "Produto não encontrado" });
@@ -164,7 +172,11 @@ export const atualizarProduto = async (req, res) => {
 // US06 - Deletar produto (soft delete na 1ª vez, hard delete na 2ª)
 export const deletarProduto = async (req, res) => {
   try {
-    const produto = await Produto.findByPk(req.params.id);
+    const whereProduto = { id: req.params.id };
+    if (req.empresaId !== "000001") {
+      whereProduto.empresaId = req.empresaId;
+    }
+    const produto = await Produto.findOne({ where: whereProduto });
 
     if (!produto) {
       return res.status(404).json({ error: "Produto não encontrado" });

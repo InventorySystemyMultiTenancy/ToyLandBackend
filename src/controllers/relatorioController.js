@@ -241,11 +241,16 @@ export const buscarAlertasDeInconsistencia = async (req, res) => {
     console.log("[ALERTAS] Máquinas encontradas:", maquinas.length);
     const alertas = [];
 
-    // Buscar alertas ignorados pelo usuário
+    // Buscar alertas ignorados pelo usuário APENAS DAS MÁQUINAS DA EMPRESA
+    const maquinaIds = maquinas.map((m) => m.id);
+    const whereIgnorados = usuarioId ? { usuarioId } : {};
+    if (maquinaIds.length > 0) {
+      whereIgnorados.maquinaId = maquinaIds;
+    }
+
     const ignorados = await AlertaIgnorado.findAll({
-      where: usuarioId ? { usuarioId } : {},
+      where: whereIgnorados,
     });
-    console.log("[ALERTAS] Alertas ignorados:", ignorados.length);
     console.log("[ALERTAS] Alertas ignorados:", ignorados.length);
     const ignoradosSet = new Set(ignorados.map((a) => a.alertaId));
 
