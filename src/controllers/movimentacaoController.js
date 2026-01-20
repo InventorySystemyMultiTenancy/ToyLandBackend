@@ -122,6 +122,7 @@ export const registrarMovimentacao = async (req, res) => {
     const movimentacao = await Movimentacao.create({
       maquinaId,
       usuarioId: req.usuario.id,
+      empresaId: req.empresaId, // Obtém empresaId do middleware de multitenancy
       dataColeta: dataColeta || new Date(),
       totalPre,
       sairam: saidaRecalculada,
@@ -166,7 +167,7 @@ export const registrarMovimentacao = async (req, res) => {
               lojaId: maquina.lojaId,
               produtoId: produto.produtoId,
               quantidadeAbastecida: produto.quantidadeAbastecida,
-            }
+            },
           );
 
           // Buscar estoque do produto na loja da máquina
@@ -182,7 +183,7 @@ export const registrarMovimentacao = async (req, res) => {
             // Descontar a quantidade abastecida (não permite ficar negativo)
             const novaQuantidade = Math.max(
               0,
-              estoqueLoja.quantidade - produto.quantidadeAbastecida
+              estoqueLoja.quantidade - produto.quantidadeAbastecida,
             );
 
             console.log(
@@ -192,7 +193,7 @@ export const registrarMovimentacao = async (req, res) => {
                 quantidadeAnterior,
                 quantidadeAbastecida: produto.quantidadeAbastecida,
                 novaQuantidade,
-              }
+              },
             );
 
             await estoqueLoja.update({ quantidade: novaQuantidade });
@@ -202,7 +203,7 @@ export const registrarMovimentacao = async (req, res) => {
               {
                 lojaId: maquina.lojaId,
                 produtoId: produto.produtoId,
-              }
+              },
             );
           }
         }
@@ -472,9 +473,8 @@ export const deletarMovimentacao = async (req, res) => {
 export const alertasAbastecimentoIncompleto = async (req, res) => {
   try {
     const { lojaId, dataInicio, dataFim, maquinaId } = req.query;
-    const { Movimentacao, Maquina, Usuario } = await import(
-      "../models/index.js"
-    );
+    const { Movimentacao, Maquina, Usuario } =
+      await import("../models/index.js");
 
     // Busca movimentações no período, loja e máquina
     const whereMov = {};

@@ -100,6 +100,7 @@ export const criarMaquina = async (req, res) => {
       nome,
       tipo,
       lojaId,
+      empresaId: req.empresaId, // Obtém empresaId do middleware de multitenancy
       capacidadePadrao: capacidadePadrao || 100,
       valorFicha: valorFicha || 5.0,
       fichasNecessarias: fichasNecessarias || null,
