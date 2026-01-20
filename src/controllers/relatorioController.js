@@ -152,7 +152,7 @@ export const dashboardRelatorio = async (req, res) => {
     const rankingRaw = await MovimentacaoProduto.findAll({
       attributes: [
         [col("produto.nome"), "nome"],
-        [fn("SUM", col("quantidadeSaiu")), "quantidade"],
+        [fn("SUM", col("quantidadesaiu")), "quantidade"],
       ],
       include: [
         { model: Produto, as: "produto", attributes: ["id", "nome"] },
@@ -171,7 +171,7 @@ export const dashboardRelatorio = async (req, res) => {
         },
       ],
       group: ["produto.id", "produto.nome"],
-      order: [[fn("SUM", col("quantidadeSaiu")), "DESC"]],
+      order: [[fn("SUM", col("quantidadesaiu")), "DESC"]],
       limit: 10,
       raw: true,
     });
