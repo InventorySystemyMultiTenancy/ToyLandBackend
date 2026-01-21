@@ -10,32 +10,36 @@ import {
   autenticar,
   autorizarRole,
   registrarLog,
+  verificarPermissaoLoja,
 } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.get("/", autenticar, listarLojas);
-router.get("/:id", autenticar, obterLoja);
+router.get("/", autenticar, verificarPermissaoLoja(), listarLojas);
+router.get("/:id", autenticar, verificarPermissaoLoja(), obterLoja);
 router.post(
   "/",
   autenticar,
   autorizarRole("ADMIN"),
+  verificarPermissaoLoja("editar"),
   registrarLog("CRIAR_LOJA", "Loja"),
-  criarLoja
+  criarLoja,
 );
 router.put(
   "/:id",
   autenticar,
   autorizarRole("ADMIN"),
+  verificarPermissaoLoja("editar"),
   registrarLog("EDITAR_LOJA", "Loja"),
-  atualizarLoja
+  atualizarLoja,
 );
 router.delete(
   "/:id",
   autenticar,
   autorizarRole("ADMIN"),
+  verificarPermissaoLoja("editar"),
   registrarLog("DELETAR_LOJA", "Loja"),
-  deletarLoja
+  deletarLoja,
 );
 
 export default router;

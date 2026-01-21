@@ -7,7 +7,11 @@ import {
   alertasEstoqueLoja,
   criarOuAtualizarProdutoEstoque,
 } from "../controllers/estoqueLojaController.js";
-import { autenticar, registrarLog } from "../middlewares/auth.js";
+import {
+  autenticar,
+  registrarLog,
+  verificarPermissaoLoja,
+} from "../middlewares/auth.js";
 
 const router = express.Router();
 
@@ -26,22 +30,28 @@ router.use((req, res, next) => {
 // Caso contrário, Express pode confundir 'alertas' ou 'varios' com um produtoId
 
 // Rotas GET específicas primeiro
-router.get("/:lojaId/alertas", autenticar, alertasEstoqueLoja);
-router.get("/:lojaId", autenticar, listarEstoqueLoja);
+router.get(
+  "/:lojaId/alertas",
+  autenticar,
+  verificarPermissaoLoja(),
+  alertasEstoqueLoja,
+);
+router.get("/:lojaId", autenticar, verificarPermissaoLoja(), listarEstoqueLoja);
 
 // Rotas POST específicas
 router.post(
   "/:lojaId/varios",
   autenticar,
+  verificarPermissaoLoja("editar"),
   registrarLog("ATUALIZAR_VARIOS_ESTOQUES", "EstoqueLoja"),
-  atualizarVariosEstoques
+  atualizarVariosEstoques,
 );
 
 router.post(
   "/:lojaId",
   autenticar,
   registrarLog("CRIAR_ATUALIZAR_ESTOQUE", "EstoqueLoja"),
-  criarOuAtualizarProdutoEstoque
+  criarOuAtualizarProdutoEstoque,
 );
 
 // Rotas PUT específicas
@@ -49,14 +59,14 @@ router.put(
   "/:lojaId/varios",
   autenticar,
   registrarLog("ATUALIZAR_VARIOS_ESTOQUES", "EstoqueLoja"),
-  atualizarVariosEstoques
+  atualizarVariosEstoques,
 );
 
 router.put(
   "/:lojaId/:produtoId",
   autenticar,
   registrarLog("ATUALIZAR_ESTOQUE_LOJA", "EstoqueLoja"),
-  atualizarEstoqueLoja
+  atualizarEstoqueLoja,
 );
 
 // Rota DELETE por último
@@ -64,7 +74,7 @@ router.delete(
   "/:lojaId/:produtoId",
   autenticar,
   registrarLog("DELETAR_ESTOQUE_LOJA", "EstoqueLoja"),
-  deletarEstoqueLoja
+  deletarEstoqueLoja,
 );
 
 export default router;
