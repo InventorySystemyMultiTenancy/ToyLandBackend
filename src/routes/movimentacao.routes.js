@@ -15,7 +15,7 @@ import {
 
 const router = express.Router();
 
-router.get("/", autenticar, verificarPermissaoLoja(), listarMovimentacoes);
+router.get("/", autenticar, listarMovimentacoes);
 router.get("/:id", autenticar, verificarPermissaoLoja(), obterMovimentacao);
 router.post(
   "/",

@@ -17,7 +17,7 @@ import { problemaMaquina } from "../controllers/movimentacaoController.js";
 
 const router = express.Router();
 
-router.get("/", autenticar, verificarPermissaoLoja(), listarMaquinas);
+router.get("/", autenticar, listarMaquinas);
 router.get("/:id", autenticar, verificarPermissaoLoja(), obterMaquina);
 router.get(
   "/:id/estoque",

@@ -9,12 +9,7 @@ import { autenticar, verificarPermissaoLoja } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.get(
-  "/",
-  autenticar,
-  verificarPermissaoLoja(),
-  listarMovimentacoesEstoqueLoja,
-);
+router.get("/", autenticar, listarMovimentacoesEstoqueLoja);
 router.post(
   "/",
   autenticar,
