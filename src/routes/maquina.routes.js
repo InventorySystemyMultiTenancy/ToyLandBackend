@@ -7,6 +7,7 @@ import {
   deletarMaquina,
   obterEstoqueAtual,
 } from "../controllers/maquinaController.js";
+import {
   autenticar,
   autorizarRole,
   registrarLog,
@@ -18,15 +19,25 @@ const router = express.Router();
 
 router.get("/", autenticar, verificarPermissaoLoja(), listarMaquinas);
 router.get("/:id", autenticar, verificarPermissaoLoja(), obterMaquina);
-router.get("/:id/estoque", autenticar, verificarPermissaoLoja(), obterEstoqueAtual);
-router.get("/:id/problema", autenticar, verificarPermissaoLoja(), problemaMaquina);
+router.get(
+  "/:id/estoque",
+  autenticar,
+  verificarPermissaoLoja(),
+  obterEstoqueAtual,
+);
+router.get(
+  "/:id/problema",
+  autenticar,
+  verificarPermissaoLoja(),
+  problemaMaquina,
+);
 router.post(
   "/",
   autenticar,
   autorizarRole("ADMIN"),
   verificarPermissaoLoja("editar"),
   registrarLog("CRIAR_MAQUINA", "Maquina"),
-  criarMaquina
+  criarMaquina,
 );
 router.put(
   "/:id",
@@ -34,7 +45,7 @@ router.put(
   autorizarRole("ADMIN"),
   verificarPermissaoLoja("editar"),
   registrarLog("EDITAR_MAQUINA", "Maquina"),
-  atualizarMaquina
+  atualizarMaquina,
 );
 router.delete(
   "/:id",
@@ -42,7 +53,7 @@ router.delete(
   autorizarRole("ADMIN"),
   verificarPermissaoLoja("editar"),
   registrarLog("DELETAR_MAQUINA", "Maquina"),
-  deletarMaquina
+  deletarMaquina,
 );
 
 export default router;
