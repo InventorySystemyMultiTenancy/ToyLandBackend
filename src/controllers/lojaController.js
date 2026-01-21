@@ -11,6 +11,19 @@ export const listarLojas = async (req, res) => {
       where.empresaId = req.empresaId;
     }
 
+    // Se for FUNCIONARIO, filtra pelas lojas permitidas
+    if (req.usuario.role === "FUNCIONARIO") {
+      const permissoes = await UsuarioLoja.findAll({
+        where: { usuarioId: req.usuario.id },
+        attributes: ["lojaId"],
+      });
+      const lojasPermitidas = permissoes.map((p) => p.lojaId);
+      if (lojasPermitidas.length === 0) {
+        return res.json([]);
+      }
+      where.id = lojasPermitidas;
+    }
+
     console.log("[LOJAS] Filtro WHERE:", JSON.stringify(where));
 
     const lojas = await Loja.findAll({
