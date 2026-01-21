@@ -594,6 +594,9 @@ export const performanceMaquinas = async (req, res) => {
   try {
     const { lojaId, dataInicio, dataFim } = req.query;
 
+    console.log("[PERFORMANCE MÁQUINAS] EmpresaId:", req.empresaId);
+    console.log("[PERFORMANCE MÁQUINAS] LojaId:", lojaId);
+
     const fim = dataFim ? new Date(dataFim) : new Date();
     const inicio = dataInicio
       ? new Date(dataInicio)
@@ -647,6 +650,11 @@ export const performanceMaquinas = async (req, res) => {
       order: [[fn("SUM", col("valorFaturado")), "DESC"]],
     });
 
+    console.log(
+      "[PERFORMANCE MÁQUINAS] Performance encontrada:",
+      performance.length,
+    );
+
     const resultado = performance.map((p) => ({
       maquina: {
         id: p.maquina.id,
@@ -674,8 +682,12 @@ export const performanceMaquinas = async (req, res) => {
       performance: resultado,
     });
   } catch (error) {
-    console.error("Erro ao gerar relatório de performance:", error);
-    res.status(500).json({ error: "Erro ao gerar relatório de performance" });
+    console.error("[PERFORMANCE MÁQUINAS] ERRO:", error);
+    console.error("[PERFORMANCE MÁQUINAS] Stack:", error.stack);
+    res.status(500).json({
+      error: "Erro ao gerar relatório de performance",
+      message: error.message,
+    });
   }
 };
 
