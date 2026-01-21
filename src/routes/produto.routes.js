@@ -7,6 +7,7 @@ import {
   deletarProduto,
   listarCategorias,
 } from "../controllers/produtoController.js";
+import {
   autenticar,
   autorizarRole,
   registrarLog,
@@ -16,7 +17,12 @@ import {
 const router = express.Router();
 
 router.get("/", autenticar, verificarPermissaoLoja(), listarProdutos);
-router.get("/categorias", autenticar, verificarPermissaoLoja(), listarCategorias);
+router.get(
+  "/categorias",
+  autenticar,
+  verificarPermissaoLoja(),
+  listarCategorias,
+);
 router.get("/:id", autenticar, verificarPermissaoLoja(), obterProduto);
 router.post(
   "/",
@@ -24,7 +30,7 @@ router.post(
   autorizarRole("ADMIN"),
   verificarPermissaoLoja("editar"),
   registrarLog("CRIAR_PRODUTO", "Produto"),
-  criarProduto
+  criarProduto,
 );
 router.put(
   "/:id",
@@ -32,7 +38,7 @@ router.put(
   autorizarRole("ADMIN"),
   verificarPermissaoLoja("editar"),
   registrarLog("EDITAR_PRODUTO", "Produto"),
-  atualizarProduto
+  atualizarProduto,
 );
 router.delete(
   "/:id",
@@ -40,7 +46,7 @@ router.delete(
   autorizarRole("ADMIN"),
   verificarPermissaoLoja("editar"),
   registrarLog("DELETAR_PRODUTO", "Produto"),
-  deletarProduto
+  deletarProduto,
 );
 
 export default router;
