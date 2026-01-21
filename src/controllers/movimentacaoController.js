@@ -514,8 +514,16 @@ export const alertasAbastecimentoIncompleto = async (req, res) => {
     const { Movimentacao, Maquina, Usuario } =
       await import("../models/index.js");
 
+    console.log("[ALERTAS ABASTECIMENTO] EmpresaId:", req.empresaId);
+
     // Busca movimentações no período, loja e máquina
     const whereMov = {};
+
+    // FILTRAR POR EMPRESA
+    if (req.empresaId !== "000001") {
+      whereMov.empresaId = req.empresaId;
+    }
+
     if (dataInicio || dataFim) {
       whereMov.dataColeta = {};
       if (dataInicio) whereMov.dataColeta[Op.gte] = new Date(dataInicio);
@@ -525,12 +533,20 @@ export const alertasAbastecimentoIncompleto = async (req, res) => {
       whereMov.maquinaId = maquinaId;
     }
 
+    const whereMaquina = {};
+    if (req.empresaId !== "000001") {
+      whereMaquina.empresaId = req.empresaId;
+    }
+    if (lojaId) {
+      whereMaquina.lojaId = lojaId;
+    }
+
     const include = [
       {
         model: Maquina,
         as: "maquina",
         attributes: ["id", "nome", "capacidadePadrao", "lojaId"],
-        ...(lojaId ? { where: { lojaId } } : {}),
+        where: Object.keys(whereMaquina).length > 0 ? whereMaquina : undefined,
       },
       {
         model: Usuario,
@@ -539,12 +555,26 @@ export const alertasAbastecimentoIncompleto = async (req, res) => {
       },
     ];
 
+    console.log(
+      "[ALERTAS ABASTECIMENTO] WHERE movimentação:",
+      JSON.stringify(whereMov),
+    );
+    console.log(
+      "[ALERTAS ABASTECIMENTO] WHERE máquina:",
+      JSON.stringify(whereMaquina),
+    );
+
     // Busca movimentações com abastecimento
     const movimentacoes = await Movimentacao.findAll({
       where: whereMov,
       include,
       order: [["dataColeta", "DESC"]],
     });
+
+    console.log(
+      "[ALERTAS ABASTECIMENTO] Movimentações encontradas:",
+      movimentacoes.length,
+    );
 
     // Gera alertas para abastecimento incompleto
     const alertas = movimentacoes
