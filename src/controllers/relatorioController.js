@@ -239,6 +239,16 @@ export const buscarAlertasDeInconsistencia = async (req, res) => {
 
     const maquinas = await Maquina.findAll({ where: whereMaquinas });
     console.log("[ALERTAS] Máquinas encontradas:", maquinas.length);
+    if (maquinas.length > 0) {
+      console.log(
+        "[ALERTAS] Primeira máquina - ID:",
+        maquinas[0].id,
+        "Nome:",
+        maquinas[0].nome,
+        "EmpresaId:",
+        maquinas[0].empresaId,
+      );
+    }
     const alertas = [];
 
     // Buscar alertas ignorados pelo usuário APENAS DAS MÁQUINAS DA EMPRESA
