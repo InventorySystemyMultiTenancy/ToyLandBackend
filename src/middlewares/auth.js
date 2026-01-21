@@ -104,7 +104,10 @@ export const verificarPermissaoLoja = (acao = "visualizar") => {
         return next();
       }
 
-      const lojaId = req.params.lojaId || req.body.lojaId;
+      // Aceita lojaId de params/body, ou id de params/body
+      let lojaId = req.params.lojaId || req.body.lojaId;
+      if (!lojaId && req.params.id) lojaId = req.params.id;
+      if (!lojaId && req.body.id) lojaId = req.body.id;
 
       if (!lojaId) {
         return res.status(400).json({ error: "ID da loja não fornecido" });
