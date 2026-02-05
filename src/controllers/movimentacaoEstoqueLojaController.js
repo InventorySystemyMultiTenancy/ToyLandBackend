@@ -96,6 +96,13 @@ export const criarMovimentacaoEstoqueLoja = async (req, res) => {
     // 3. Salvar produtos enviados (Itens) e atualizar estoque
     const { EstoqueLoja } = await import("../models/index.js");
     for (const [idx, item] of produtos.entries()) {
+      // Log para depuração de lojaId e produtoId
+      console.log(
+        "[DEBUG][EstoqueLoja.create] lojaId:",
+        lojaId,
+        "produtoId:",
+        item.produtoId,
+      );
       try {
         await MovimentacaoEstoqueLojaProduto.create({
           movimentacaoestoquelojaid: movimentacao.id,
