@@ -84,10 +84,10 @@ export const criarMovimentacaoEstoqueLoja = async (req, res) => {
 
     // 2. Criar a Movimentação (Header)
     const movimentacao = await MovimentacaoEstoqueLoja.create({
-      lojaid: lojaId,
-      usuarioid: usuarioId,
+      lojaId: lojaId,
+      usuarioId: usuarioId,
       observacao,
-      datamovimentacao: dataMovimentacao || new Date(),
+      dataMovimentacao: dataMovimentacao || new Date(),
     });
 
     console.log("[DEBUG] Movimentacao criada ID:", movimentacao.id);
