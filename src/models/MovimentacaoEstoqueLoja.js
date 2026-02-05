@@ -18,6 +18,15 @@ const MovimentacaoEstoqueLoja = sequelize.define(
       },
       field: "lojaid",
     },
+    empresaId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: "empresas",
+        key: "id",
+      },
+      field: "empresaid",
+    },
     usuarioId: {
       type: DataTypes.UUID,
       allowNull: false,

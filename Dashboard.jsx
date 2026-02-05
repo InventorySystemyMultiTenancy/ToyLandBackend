@@ -87,6 +87,7 @@ export function Dashboard() {
       const payload = {
         lojaId: movimentacaoLojaId,
         usuarioId: usuario?.id,
+        empresaId: usuario?.empresaId,
         produtos: produtosValidos.map((p) => ({
           produtoId: p.produtoId,
           quantidade: parseInt(p.quantidade),

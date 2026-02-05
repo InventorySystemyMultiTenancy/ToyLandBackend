@@ -86,6 +86,7 @@ export const criarMovimentacaoEstoqueLoja = async (req, res) => {
     const movimentacao = await MovimentacaoEstoqueLoja.create({
       lojaId: lojaId,
       usuarioId: usuarioId,
+      empresaId: req.empresaId,
       observacao,
       dataMovimentacao: dataMovimentacao || new Date(),
     });
