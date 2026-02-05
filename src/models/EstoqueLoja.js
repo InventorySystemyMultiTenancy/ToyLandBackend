@@ -16,6 +16,7 @@ const EstoqueLoja = sequelize.define(
         model: "lojas",
         key: "id",
       },
+      field: "lojaid",
     },
     produtoId: {
       type: DataTypes.UUID,
@@ -24,6 +25,7 @@ const EstoqueLoja = sequelize.define(
         model: "produtos",
         key: "id",
       },
+      field: "produtoid",
     },
     quantidade: {
       type: DataTypes.INTEGER,
