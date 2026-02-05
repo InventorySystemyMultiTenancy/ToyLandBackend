@@ -102,12 +102,19 @@ export const criarUsuario = async (req, res) => {
     }
 
     // Validar role
-    const roleValida = ["ADMIN", "FUNCIONARIO"].includes(role);
+    const roleValida = [
+      "ADMIN",
+      "FUNCIONARIO",
+      "CONFIGURADOR_MAQUINA",
+    ].includes(role);
     if (!roleValida) {
       console.warn("Role inválida recebida:", role);
       return res
         .status(400)
-        .json({ error: "Role inválida. Use ADMIN ou FUNCIONARIO" });
+        .json({
+          error:
+            "Role inválida. Use ADMIN, FUNCIONARIO ou CONFIGURADOR_MAQUINA",
+        });
     }
 
     // Verificar se email já existe
@@ -146,9 +153,9 @@ export const criarUsuario = async (req, res) => {
       empresaId,
     });
 
-    // Se for funcionário e tiver lojas permitidas, criar permissões
+    // Se for funcionário ou configurador e tiver lojas permitidas, criar permissões
     if (
-      role === "FUNCIONARIO" &&
+      ["FUNCIONARIO", "CONFIGURADOR_MAQUINA"].includes(role) &&
       lojasPermitidas &&
       lojasPermitidas.length > 0
     ) {
@@ -220,9 +227,11 @@ export const atualizarUsuario = async (req, res) => {
       // Remover permissões antigas
       await UsuarioLoja.destroy({ where: { usuarioId: usuario.id } });
 
-      // Adicionar novas permissões (apenas se for FUNCIONARIO e houver lojas)
+      // Adicionar novas permissões (se for FUNCIONARIO ou CONFIGURADOR_MAQUINA e houver lojas)
       if (
-        (role || usuario.role) === "FUNCIONARIO" &&
+        ["FUNCIONARIO", "CONFIGURADOR_MAQUINA"].includes(
+          role || usuario.role,
+        ) &&
         lojasPermitidas.length > 0
       ) {
         const permissoes = lojasPermitidas.map((lojaId) => ({

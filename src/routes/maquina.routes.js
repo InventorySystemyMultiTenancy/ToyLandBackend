@@ -34,7 +34,7 @@ router.get(
 router.post(
   "/",
   autenticar,
-  autorizarRole("ADMIN"),
+  autorizarRole("ADMIN", "CONFIGURADOR_MAQUINA"),
   verificarPermissaoLoja("editar"),
   registrarLog("CRIAR_MAQUINA", "Maquina"),
   criarMaquina,
