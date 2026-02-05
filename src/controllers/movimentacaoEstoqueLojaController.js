@@ -106,7 +106,7 @@ export const criarMovimentacaoEstoqueLoja = async (req, res) => {
 
         // Atualizar estoque da loja
         const estoque = await EstoqueLoja.findOne({
-          where: { lojaid: lojaId, produtoid: item.produtoId },
+          where: { lojaId: lojaId, produtoId: item.produtoId },
         });
         let novaQuantidade = 0;
         if (estoque) {
@@ -130,8 +130,8 @@ export const criarMovimentacaoEstoqueLoja = async (req, res) => {
               ? Number(item.quantidade)
               : 0;
           await EstoqueLoja.create({
-            lojaid: lojaId,
-            produtoid: item.produtoId,
+            lojaId: lojaId,
+            produtoId: item.produtoId,
             quantidade: novaQuantidade,
           });
           console.log(
