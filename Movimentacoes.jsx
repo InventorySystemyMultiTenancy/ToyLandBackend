@@ -84,13 +84,14 @@ export function Movimentacoes() {
     setProblemas([]);
     try {
       // Busca movimentações e problemas de inconsistência
-      const [movRes, maqRes, prodRes, lojasRes, problemasRes] = await Promise.all([
-        api.get("/movimentacoes"),
-        api.get("/maquinas"),
-        api.get("/produtos"),
-        api.get("/lojas"),
-        api.get("/movimentacoes/problemas-inconsistencia")
-      ]);
+      const [movRes, maqRes, prodRes, lojasRes, problemasRes] =
+        await Promise.all([
+          api.get("/movimentacoes"),
+          api.get("/maquinas"),
+          api.get("/produtos"),
+          api.get("/lojas"),
+          api.get("/movimentacoes/problemas-inconsistencia"),
+        ]);
       setMovimentacoes(movRes.data);
       setMaquinas(maqRes.data);
       setProdutos(prodRes.data);
@@ -141,20 +142,34 @@ export function Movimentacoes() {
   const [quantidadeAtualEditada, setQuantidadeAtualEditada] = useState(false);
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    let newForm = { ...formData, [name]: type === "checkbox" ? checked : value };
+    let newForm = {
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
+    };
     // Se usuário editar manualmente o campo, marca como editado
     if (name === "quantidadeAtualMaquina") {
       setQuantidadeAtualEditada(true);
     }
     // Se mudou IN ou OUT, e máquina selecionada, calcula quantidadeAtualMaquina só se não foi editado manualmente
-    if ((name === "contadorIn" || name === "contadorOut") && newForm.maquina_id && !newForm.ignoreInOut && !quantidadeAtualEditada) {
+    if (
+      (name === "contadorIn" || name === "contadorOut") &&
+      newForm.maquina_id &&
+      !newForm.ignoreInOut &&
+      !quantidadeAtualEditada
+    ) {
       const maquina = maquinas.find((m) => m.id === newForm.maquina_id);
       const movs = movimentacoes
-        .filter((m) => m.maquinaId === newForm.maquina_id || m.maquina_id === newForm.maquina_id)
+        .filter(
+          (m) =>
+            m.maquinaId === newForm.maquina_id ||
+            m.maquina_id === newForm.maquina_id,
+        )
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       let ultimoTotalPos = movs.length > 0 ? movs[0].totalPos || 0 : 0;
-      const inAtual = parseInt(name === "contadorIn" ? value : newForm.contadorIn) || 0;
-      const outAtual = parseInt(name === "contadorOut" ? value : newForm.contadorOut) || 0;
+      const inAtual =
+        parseInt(name === "contadorIn" ? value : newForm.contadorIn) || 0;
+      const outAtual =
+        parseInt(name === "contadorOut" ? value : newForm.contadorOut) || 0;
       let quantidadeAtual = ultimoTotalPos + (inAtual - outAtual);
       if (quantidadeAtual < 0) quantidadeAtual = 0;
       newForm.quantidadeAtualMaquina = quantidadeAtual;
@@ -191,7 +206,7 @@ export function Movimentacoes() {
           return id1 === formData.maquina_id;
         })
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      
+
       // Se houver movimentações anteriores, pega o totalPos da última
       if (movimentacoesMaquina.length > 0) {
         ultimoTotalPos = movimentacoesMaquina[0].totalPos || 0;
@@ -214,8 +229,15 @@ export function Movimentacoes() {
       }
 
       // Transformar para o formato do backend
+      const maquinaSelecionada = maquinas.find(
+        (m) => m.id === formData.maquina_id,
+      );
+      const lojaId = maquinaSelecionada
+        ? maquinaSelecionada.lojaId
+        : filtroLojaForm || null;
       const data = {
         maquinaId: formData.maquina_id,
+        lojaId: lojaId,
         totalPre: totalPre,
         sairam: quantidadeSaiu,
         abastecidas: quantidadeAdicionada,
@@ -251,7 +273,7 @@ export function Movimentacoes() {
         typeof formData.maquina_id,
         ")",
       );
-      
+
       // Recalcula para log
       movimentacoesMaquina = movimentacoes
         .filter((m) => {
@@ -593,7 +615,6 @@ export function Movimentacoes() {
           }}
         />
 
-
         {error && (
           <AlertBox type="error" message={error} onClose={() => setError("")} />
         )}
@@ -612,7 +633,9 @@ export function Movimentacoes() {
               type="warning"
               message={
                 <div>
-                  <strong>Atenção:</strong> Foram encontradas inconsistências nas movimentações das máquinas:<br />
+                  <strong>Atenção:</strong> Foram encontradas inconsistências
+                  nas movimentações das máquinas:
+                  <br />
                   <ul className="list-disc ml-6 mt-2">
                     {problemas.map((p, idx) => (
                       <li key={idx}>{p}</li>
@@ -787,25 +810,31 @@ export function Movimentacoes() {
                     Quantos produtos foram adicionados
                   </p>
                   {/* Sugestão automática de abastecimento */}
-                  {formData.maquina_id && maquinas.length > 0 && (
+                  {formData.maquina_id &&
+                    maquinas.length > 0 &&
                     (() => {
-                      const maq = maquinas.find((m) => m.id === formData.maquina_id);
+                      const maq = maquinas.find(
+                        (m) => m.id === formData.maquina_id,
+                      );
                       if (!maq) return null;
-                      const atual = parseInt(formData.quantidadeAtualMaquina) || 0;
+                      const atual =
+                        parseInt(formData.quantidadeAtualMaquina) || 0;
                       const capacidade = maq.capacidadePadrao || 0;
                       const sugerido = Math.max(0, capacidade - atual);
                       return (
                         <p className="text-xs font-semibold text-blue-600 mt-1">
-                          💡 Para encher a máquina: abasteça <b>{sugerido}</b> produtos (Capacidade: {capacidade}, Atual: {atual})
+                          💡 Para encher a máquina: abasteça <b>{sugerido}</b>{" "}
+                          produtos (Capacidade: {capacidade}, Atual: {atual})
                         </p>
                       );
-                    })()
-                  )}
+                    })()}
                   {formData.quantidadeAdicionada &&
                     formData.quantidadeAtualMaquina && (
                       <p className="text-xs font-semibold text-green-600 mt-1">
-                        ✅ Novo total: {parseInt(formData.quantidadeAtualMaquina || 0) +
-                          parseInt(formData.quantidadeAdicionada || 0)} unidades
+                        ✅ Novo total:{" "}
+                        {parseInt(formData.quantidadeAtualMaquina || 0) +
+                          parseInt(formData.quantidadeAdicionada || 0)}{" "}
+                        unidades
                       </p>
                     )}
                 </div>

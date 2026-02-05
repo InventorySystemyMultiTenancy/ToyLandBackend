@@ -12,13 +12,13 @@ export const listarMovimentacoesEstoqueLoja = async (req, res) => {
     }
     const movimentacoes = await MovimentacaoEstoqueLoja.findAll({
       where,
-      order: [["datamovimentacao", "DESC"]],
+      order: [["dataMovimentacao", "DESC"]],
       attributes: [
         "id",
         "lojaid",
         "usuarioid",
         "observacao",
-        "datamovimentacao",
+        "dataMovimentacao",
         "atualizadoem",
       ],
       include: [
