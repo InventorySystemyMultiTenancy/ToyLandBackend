@@ -1,3 +1,53 @@
+// GET /movimentacoes/problemas-inconsistencia
+export const listarProblemasInconsistencia = async (req, res) => {
+  try {
+    // Busca todas as máquinas da empresa
+    const maquinas = await Maquina.findAll({
+      where:
+        req.empresaId && req.empresaId !== "000001"
+          ? { empresaId: req.empresaId }
+          : {},
+      attributes: ["id", "nome", "codigo"],
+    });
+    const problemas = [];
+    // Para cada máquina, busca as duas últimas movimentações
+    for (const maq of maquinas) {
+      const movs = await Movimentacao.findAll({
+        where: { maquinaId: maq.id },
+        order: [["dataColeta", "DESC"]],
+        limit: 2,
+        attributes: [
+          "id",
+          "contadorIn",
+          "contadorOut",
+          "fichas",
+          "sairam",
+          "dataColeta",
+        ],
+      });
+      if (movs.length === 2) {
+        const atual = movs[0];
+        const anterior = movs[1];
+        const diffOut = (atual.contadorOut || 0) - (anterior.contadorOut || 0);
+        const diffIn = (atual.contadorIn || 0) - (anterior.contadorIn || 0);
+        if (
+          (diffOut !== (atual.sairam || 0) || diffIn !== (atual.fichas || 0)) &&
+          !(atual.contadorOut === 0 && atual.contadorIn === 0)
+        ) {
+          problemas.push(
+            `Máquina ${maq.codigo || maq.nome}: IN (${diffIn}) esperado ${atual.fichas}, OUT (${diffOut}) esperado ${atual.sairam}`,
+          );
+        }
+      }
+    }
+    res.json(problemas);
+  } catch (error) {
+    console.error("Erro ao buscar problemas de inconsistência:", error);
+    res
+      .status(500)
+      .json({ error: "Erro ao buscar problemas de inconsistência" });
+  }
+};
 import {
   Movimentacao,
   MovimentacaoProduto,

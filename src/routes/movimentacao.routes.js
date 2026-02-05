@@ -1,3 +1,9 @@
+import { listarProblemasInconsistencia } from "../controllers/movimentacaoController.js";
+router.get(
+  "/problemas-inconsistencia",
+  autenticar,
+  listarProblemasInconsistencia,
+);
 import express from "express";
 import {
   registrarMovimentacao,
