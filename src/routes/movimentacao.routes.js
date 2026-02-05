@@ -1,10 +1,5 @@
-import { listarProblemasInconsistencia } from "../controllers/movimentacaoController.js";
-router.get(
-  "/problemas-inconsistencia",
-  autenticar,
-  listarProblemasInconsistencia,
-);
 import express from "express";
+import { listarProblemasInconsistencia } from "../controllers/movimentacaoController.js";
 import {
   registrarMovimentacao,
   listarMovimentacoes,
@@ -20,6 +15,12 @@ import {
 } from "../middlewares/auth.js";
 
 const router = express.Router();
+// Corrigido: rota deve ser registrada após router ser inicializado
+router.get(
+  "/problemas-inconsistencia",
+  autenticar,
+  listarProblemasInconsistencia,
+);
 
 router.get("/", autenticar, listarMovimentacoes);
 router.get("/:id", autenticar, verificarPermissaoLoja(), obterMovimentacao);
