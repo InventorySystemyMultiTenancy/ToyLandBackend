@@ -202,13 +202,18 @@ export const atualizarUsuario = async (req, res) => {
     }
 
     // Atualiza dados básicos
-    await usuario.update({
+    const updateData = {
       nome,
       email,
       telefone,
       role,
       ativo,
-    });
+    };
+    // Atualiza senha se enviada
+    if (req.body.senha && req.body.senha.length >= 6) {
+      updateData.senha = req.body.senha;
+    }
+    await usuario.update(updateData);
 
     // Gerenciar permissões de loja
     if (lojasPermitidas !== undefined) {
