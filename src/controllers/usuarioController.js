@@ -83,7 +83,8 @@ export const obterUsuario = async (req, res) => {
 export const criarUsuario = async (req, res) => {
   try {
     const { nome, email, senha, telefone, role, lojasPermitidas } = req.body;
-    console.log("Dados recebidos para criar usuário:", req.body);
+    console.log("[CRIAR USUARIO] Body recebido:", req.body);
+    console.log("[CRIAR USUARIO] empresaId do req:", req.empresaId);
 
     if (!nome || !email || !senha) {
       console.warn("Faltando campos obrigatórios:", { nome, email, senha });
