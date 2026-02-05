@@ -105,10 +105,10 @@ export const criarMovimentacaoEstoqueLoja = async (req, res) => {
       );
       try {
         await MovimentacaoEstoqueLojaProduto.create({
-          movimentacaoestoquelojaid: movimentacao.id,
-          produtoid: item.produtoId,
+          movimentacaoEstoqueLojaId: movimentacao.id,
+          produtoId: item.produtoId,
           quantidade: Number(item.quantidade),
-          tipomovimentacao: item.tipoMovimentacao || "saida",
+          tipoMovimentacao: item.tipoMovimentacao || "saida",
         });
 
         // Atualizar estoque da loja
