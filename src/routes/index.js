@@ -1,4 +1,5 @@
 import express from "express";
+import registroDinheiroRoutes from "./registroDinheiro.routes.js";
 import superadminRoutes from "./superadmin.routes.js";
 import authRoutes from "./auth.routes.js";
 import usuarioRoutes from "./usuario.routes.js";
@@ -26,6 +27,5 @@ router.use("/movimentacoes", movimentacaoRoutes);
 router.use("/relatorios", relatorioRoutes);
 router.use("/admin", adminRoutes);
 router.use("/estoque-lojas", estoqueLojaRoutes);
-router.use("/movimentacao-estoque-loja", movimentacaoEstoqueLojaRoutes);
 
-export default router;
+router.use("/registro-dinheiro", registroDinheiroRoutes);

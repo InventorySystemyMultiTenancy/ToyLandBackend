@@ -204,12 +204,14 @@ export const registrarMovimentacao = async (req, res) => {
         produtoId: p.produtoId,
         quantidadeSaiu: p.quantidadeSaiu || 0,
         quantidadeAbastecida: p.quantidadeAbastecida || 0,
+        // Não salva retiradaProduto no MovimentacaoProduto, mas pode ser adicionado se quiser rastrear
       }));
 
       await MovimentacaoProduto.bulkCreate(detalhesProdutos);
 
       // Descontar do estoque da loja os produtos abastecidos
       for (const produto of produtos) {
+        // 1. Descontar abastecimento
         if (produto.quantidadeAbastecida && produto.quantidadeAbastecida > 0) {
           console.log(
             "🏪 [registrarMovimentacao] Atualizando estoque da loja:",
@@ -219,23 +221,18 @@ export const registrarMovimentacao = async (req, res) => {
               quantidadeAbastecida: produto.quantidadeAbastecida,
             },
           );
-
-          // Buscar estoque do produto na loja da máquina
           const estoqueLoja = await EstoqueLoja.findOne({
             where: {
               lojaId: maquina.lojaId,
               produtoId: produto.produtoId,
             },
           });
-
           if (estoqueLoja) {
             const quantidadeAnterior = estoqueLoja.quantidade;
-            // Descontar a quantidade abastecida (não permite ficar negativo)
             const novaQuantidade = Math.max(
               0,
               estoqueLoja.quantidade - produto.quantidadeAbastecida,
             );
-
             console.log(
               "📦 [registrarMovimentacao] Estoque da loja atualizado:",
               {
@@ -245,11 +242,44 @@ export const registrarMovimentacao = async (req, res) => {
                 novaQuantidade,
               },
             );
-
             await estoqueLoja.update({ quantidade: novaQuantidade });
           } else {
             console.log(
               "⚠️ [registrarMovimentacao] Estoque da loja não encontrado:",
+              {
+                lojaId: maquina.lojaId,
+                produtoId: produto.produtoId,
+              },
+            );
+          }
+        }
+        // 2. Devolver retirada ao estoque se marcado
+        if (
+          produto.retiradaProdutoDevolverEstoque &&
+          produto.retiradaProduto > 0
+        ) {
+          const estoqueLoja = await EstoqueLoja.findOne({
+            where: {
+              lojaId: maquina.lojaId,
+              produtoId: produto.produtoId,
+            },
+          });
+          if (estoqueLoja) {
+            const quantidadeAnterior = estoqueLoja.quantidade;
+            const novaQuantidade = quantidadeAnterior + produto.retiradaProduto;
+            await estoqueLoja.update({ quantidade: novaQuantidade });
+            console.log(
+              "✅ [registrarMovimentacao] Devolução: retirada devolvida ao estoque da loja:",
+              {
+                produtoId: produto.produtoId,
+                quantidadeAnterior,
+                devolvida: produto.retiradaProduto,
+                novaQuantidade,
+              },
+            );
+          } else {
+            console.log(
+              "⚠️ [registrarMovimentacao] Estoque da loja não encontrado para devolução:",
               {
                 lojaId: maquina.lojaId,
                 produtoId: produto.produtoId,

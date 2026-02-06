@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import RegistrarDinheiro from "../components/RegistrarDinheiro";
 import api from "../services/api";
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
@@ -20,6 +21,24 @@ export function Movimentacoes() {
   // --- ESTADOS ---
   const [movimentacoes, setMovimentacoes] = useState([]);
   const [movimentacoesEstoqueLoja, setMovimentacoesEstoqueLoja] = useState([]);
+
+  // Modal para registrar dinheiro
+  const [modalRegistrarDinheiro, setModalRegistrarDinheiro] = useState(false);
+  // Removido: valorDinheiro, obsDinheiro, salvandoDinheiro (serão controlados pelo componente)
+  const abrirModalRegistrarDinheiro = () => setModalRegistrarDinheiro(true);
+  const fecharModalRegistrarDinheiro = () => {
+    setModalRegistrarDinheiro(false);
+  };
+  const handleRegistrarDinheiro = async (dados) => {
+    try {
+      // Envie os dados para a API (endpoint correto)
+      await api.post("/registro-dinheiro", dados);
+      setSuccess("Dinheiro registrado com sucesso!");
+      fecharModalRegistrarDinheiro();
+    } catch (error) {
+      setError("Erro ao registrar dinheiro");
+    }
+  };
 
   // Filtros Estoque Loja
   const [filtroLojaEstoque, setFiltroLojaEstoque] = useState("");
@@ -150,14 +169,13 @@ export function Movimentacoes() {
     if (name === "quantidadeAtualMaquina") {
       setQuantidadeAtualEditada(true);
     }
-    // Se mudou IN ou OUT, e máquina selecionada, calcula quantidadeAtualMaquina só se não foi editado manualmente
+    // Se mudou OUT, e máquina selecionada, calcula quantidadeAtualMaquina só se não foi editado manualmente
     if (
-      (name === "contadorIn" || name === "contadorOut") &&
+      name === "contadorOut" &&
       newForm.maquina_id &&
       !newForm.ignoreInOut &&
       !quantidadeAtualEditada
     ) {
-      const maquina = maquinas.find((m) => m.id === newForm.maquina_id);
       const movs = movimentacoes
         .filter(
           (m) =>
@@ -166,11 +184,10 @@ export function Movimentacoes() {
         )
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       let ultimoTotalPos = movs.length > 0 ? movs[0].totalPos || 0 : 0;
-      const inAtual =
-        parseInt(name === "contadorIn" ? value : newForm.contadorIn) || 0;
-      const outAtual =
-        parseInt(name === "contadorOut" ? value : newForm.contadorOut) || 0;
-      let quantidadeAtual = ultimoTotalPos + (inAtual - outAtual);
+      let ultimoOut = movs.length > 0 ? movs[0].contadorOut || 0 : 0;
+      const outAtual = parseInt(value) || 0;
+      // Quantidade atual = totalPos anterior - (OUT atual - OUT anterior)
+      let quantidadeAtual = ultimoTotalPos - (outAtual - ultimoOut);
       if (quantidadeAtual < 0) quantidadeAtual = 0;
       newForm.quantidadeAtualMaquina = quantidadeAtual;
     }
@@ -193,6 +210,7 @@ export function Movimentacoes() {
       const totalPre = parseInt(formData.quantidadeAtualMaquina) || 0; // valor digitado pelo usuário
       const quantidadeAdicionada = parseInt(formData.quantidadeAdicionada) || 0;
       const fichas = parseInt(formData.fichas) || 0;
+      const retiradaProduto = parseInt(formData.retiradaProduto) || 0;
 
       // totalPos = totalPre + abastecidas
       const totalPos = totalPre + quantidadeAdicionada;
@@ -259,6 +277,8 @@ export function Movimentacoes() {
             produtoId: formData.produto_id,
             quantidadeSaiu: quantidadeSaiu,
             quantidadeAbastecida: quantidadeAdicionada,
+            retiradaProduto: retiradaProduto,
+            retiradaProdutoDevolverEstoque: retiradaProduto > 0, // true se houver retirada
           },
         ],
       };
@@ -298,6 +318,7 @@ export function Movimentacoes() {
         observacao: "",
         retiradaEstoque: false,
         ignoreInOut: false,
+        retiradaProduto: "",
       });
       setEstoqueAnterior(0);
       setFiltroLojaForm("");
@@ -614,6 +635,12 @@ export function Movimentacoes() {
             onClick: () => setShowForm(!showForm),
           }}
         />
+        <button
+          className="px-6 py-2 bg-blue-700 text-white rounded hover:bg-blue-800 font-bold shadow text-base"
+          onClick={() => setModalRegistrarDinheiro(true)}
+        >
+          Registrar Dinheiro
+        </button>
 
         {error && (
           <AlertBox type="error" message={error} onClose={() => setError("")} />
@@ -707,6 +734,98 @@ export function Movimentacoes() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Loja *
+                  </label>
+                  <select
+                    value={filtroLojaForm}
+                    onChange={(e) => {
+                      setFiltroLojaForm(e.target.value);
+                      setFormData({ ...formData, maquina_id: "" });
+                    }}
+                    className="select-field"
+                    required
+                  >
+                    <option value="">Selecione uma loja...</option>
+                    {lojas
+                      .filter((l) => l.ativo)
+                      .map((loja) => (
+                        <option key={loja.id} value={loja.id}>
+                          {loja.nome}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Máquina *
+                  </label>
+                  <select
+                    name="maquina_id"
+                    value={formData.maquina_id}
+                    onChange={handleChange}
+                    className="select-field"
+                    required
+                    disabled={!filtroLojaForm}
+                  >
+                    <option value="">
+                      {filtroLojaForm
+                        ? "Selecione uma máquina..."
+                        : "Primeiro selecione uma loja"}
+                    </option>
+                    {maquinas
+                      .filter(
+                        (m) => !filtroLojaForm || m.lojaId === filtroLojaForm,
+                      )
+                      .map((maquina) => (
+                        <option key={maquina.id} value={maquina.id}>
+                          {maquina.nome} - {maquina.codigo}
+                        </option>
+                      ))}
+                  </select>
+                  {filtroLojaForm && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      💡 Mostrando apenas máquinas da loja selecionada
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Produto *
+                  </label>
+                  <select
+                    name="produto_id"
+                    value={formData.produto_id}
+                    onChange={handleChange}
+                    className="select-field"
+                  >
+                    <option value="">Nenhum produto</option>
+                    {produtos.map((produto) => (
+                      <option key={produto.id} value={produto.id}>
+                        {produto.emoji || "🧸"} {produto.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Observação
+                  </label>
+                  <textarea
+                    name="observacao"
+                    value={formData.observacao}
+                    onChange={handleChange}
+                    className="input-field"
+                    rows="2"
+                    placeholder="Informações adicionais sobre a movimentação..."
+                  />
+                </div>
+              </div>
               {/* Contadores da Máquina */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -809,7 +928,7 @@ export function Movimentacoes() {
                   <p className="text-xs text-gray-500 mt-1">
                     Quantos produtos foram adicionados
                   </p>
-                  {/* Sugestão automática de abastecimento */}
+                  {/* Sugestão automática de abastecimento: capacidade - quantidade atual */}
                   {formData.maquina_id &&
                     maquinas.length > 0 &&
                     (() => {
@@ -838,180 +957,25 @@ export function Movimentacoes() {
                       </p>
                     )}
                 </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    🎫 Quantidade de Fichas
-                  </label>
-                  <input
-                    type="number"
-                    name="fichas"
-                    value={formData.fichas}
-                    onChange={handleChange}
-                    className="input-field"
-                    placeholder="0"
-                    min="0"
-                    disabled={formData.retiradaEstoque}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Fichas coletadas da máquina
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    💵 Valor em Notas (R$)
-                  </label>
-                  <input
-                    type="number"
-                    name="quantidade_notas_entrada"
-                    value={formData.quantidade_notas_entrada}
-                    onChange={handleChange}
-                    className="input-field"
-                    placeholder="0.00"
-                    min="0"
-                    step="0.01"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Valor total em dinheiro (notas) inserido na máquina
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    💳 Valor Digital (Pix/Maquininha) (R$)
-                  </label>
-                  <input
-                    type="number"
-                    name="valor_entrada_maquininha_pix"
-                    value={formData.valor_entrada_maquininha_pix}
-                    onChange={handleChange}
-                    className="input-field"
-                    placeholder="0.00"
-                    min="0"
-                    step="0.01"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Valor total recebido via pagamento digital (Pix/Maquininha)
-                  </p>
-                </div>
               </div>
-
-              {/* Checkbox de Retirada de Estoque */}
-              <div className="p-4 bg-linear-to-r from-orange-50 to-yellow-50 border-2 border-orange-200 rounded-lg">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="retiradaEstoque"
-                    checked={formData.retiradaEstoque}
-                    onChange={handleChange}
-                    className="w-5 h-5 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer"
-                  />
-                  <div className="flex-1">
-                    <span className="text-sm font-bold text-orange-900">
-                      📦 Retirada de Estoque (não conta como dinheiro)
-                    </span>
-                    <p className="text-xs text-orange-700 mt-1">
-                      Marque esta opção quando estiver retirando produtos da
-                      máquina sem que seja uma venda (exemplo: produtos
-                      danificados, devolução, transferência). As fichas serão
-                      automaticamente zeradas.
-                    </p>
-                  </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  ❌ Retirada de Produto
                 </label>
+                <input
+                  type="number"
+                  name="retiradaProduto"
+                  value={formData.retiradaProduto}
+                  onChange={handleChange}
+                  className="input-field"
+                  placeholder="0"
+                  min="0"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Quantidade de produtos retirados (não conta como saída
+                  financeira)
+                </p>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Loja *
-                  </label>
-                  <select
-                    value={filtroLojaForm}
-                    onChange={(e) => {
-                      setFiltroLojaForm(e.target.value);
-                      setFormData({ ...formData, maquina_id: "" });
-                    }}
-                    className="select-field"
-                    required
-                  >
-                    <option value="">Selecione uma loja...</option>
-                    {lojas
-                      .filter((l) => l.ativo)
-                      .map((loja) => (
-                        <option key={loja.id} value={loja.id}>
-                          {loja.nome}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Máquina *
-                  </label>
-                  <select
-                    name="maquina_id"
-                    value={formData.maquina_id}
-                    onChange={handleChange}
-                    className="select-field"
-                    required
-                    disabled={!filtroLojaForm}
-                  >
-                    <option value="">
-                      {filtroLojaForm
-                        ? "Selecione uma máquina..."
-                        : "Primeiro selecione uma loja"}
-                    </option>
-                    {maquinas
-                      .filter(
-                        (m) => !filtroLojaForm || m.lojaId === filtroLojaForm,
-                      )
-                      .map((maquina) => (
-                        <option key={maquina.id} value={maquina.id}>
-                          {maquina.nome} - {maquina.codigo}
-                        </option>
-                      ))}
-                  </select>
-                  {filtroLojaForm && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      💡 Mostrando apenas máquinas da loja selecionada
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Produto *
-                  </label>
-                  <select
-                    name="produto_id"
-                    value={formData.produto_id}
-                    onChange={handleChange}
-                    className="select-field"
-                  >
-                    <option value="">Nenhum produto</option>
-                    {produtos.map((produto) => (
-                      <option key={produto.id} value={produto.id}>
-                        {produto.emoji || "🧸"} {produto.nome}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Observação
-                  </label>
-                  <textarea
-                    name="observacao"
-                    value={formData.observacao}
-                    onChange={handleChange}
-                    className="input-field"
-                    rows="2"
-                    placeholder="Informações adicionais sobre a movimentação..."
-                  />
-                </div>
-              </div>
-
               <div className="flex gap-4 justify-end pt-4 border-t border-gray-200">
                 {error && (
                   <AlertBox
@@ -1432,6 +1396,37 @@ export function Movimentacoes() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Botão para abrir modal de registrar dinheiro (apenas ADMIN) */}
+      {usuario?.role === "ADMIN" && (
+        <div className="mb-6 flex justify-end">
+          <button
+            onClick={abrirModalRegistrarDinheiro}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded shadow"
+          >
+            Registrar Dinheiro
+          </button>
+        </div>
+      )}
+
+      {/* Modal Registrar Dinheiro */}
+      {modalRegistrarDinheiro && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 z-10"
+              onClick={fecharModalRegistrarDinheiro}
+              style={{ right: 0, top: 0, position: "absolute" }}
+            >
+              ✕
+            </button>
+            <RegistrarDinheiro
+              lojas={lojas}
+              maquinas={maquinas}
+              onSubmit={handleRegistrarDinheiro}
+            />
           </div>
         </div>
       )}
