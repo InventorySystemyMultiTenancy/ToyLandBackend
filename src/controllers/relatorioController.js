@@ -223,13 +223,15 @@ export const dashboardRelatorio = async (req, res) => {
     );
 
     // --- QUERY 5: RANKING DE PRODUTOS ---
+
     const rankingRaw = await MovimentacaoProduto.findAll({
       attributes: [
         [col("produto.nome"), "nome"],
         [fn("SUM", col("quantidadesaiu")), "quantidade"],
+        [col("produto.preco"), "valor"],
       ],
       include: [
-        { model: Produto, as: "produto", attributes: ["id", "nome"] },
+        { model: Produto, as: "produto", attributes: ["id", "nome", "preco"] },
         {
           model: Movimentacao,
           attributes: [],
@@ -244,7 +246,7 @@ export const dashboardRelatorio = async (req, res) => {
           ],
         },
       ],
-      group: ["produto.id", "produto.nome"],
+      group: ["produto.id", "produto.nome", "produto.preco"],
       order: [[fn("SUM", col("quantidadesaiu")), "DESC"]],
       limit: 10,
       raw: true,
@@ -253,7 +255,24 @@ export const dashboardRelatorio = async (req, res) => {
     const rankingProdutos = rankingRaw.map((r) => ({
       nome: r.nome || "Desconhecido",
       quantidade: parseInt(r.quantidade || 0),
+      valor:
+        r.valor !== undefined && r.valor !== null ? parseFloat(r.valor) : null,
     }));
+
+    // Calcular valor médio ponderado dos produtos (para totais.valorProduto)
+    let valorProduto = 0;
+    const produtosComValor = rankingProdutos.filter((p) => p.valor);
+    if (produtosComValor.length > 0) {
+      const totalValor = produtosComValor.reduce(
+        (sum, p) => sum + p.valor * p.quantidade,
+        0,
+      );
+      const totalQtd = produtosComValor.reduce(
+        (sum, p) => sum + p.quantidade,
+        0,
+      );
+      valorProduto = totalQtd > 0 ? totalValor / totalQtd : 0;
+    }
 
     // --- RESPOSTA FINAL ---
     res.json({
@@ -264,6 +283,7 @@ export const dashboardRelatorio = async (req, res) => {
         fichas,
         dinheiro,
         pix,
+        valorProduto,
       },
       graficoFinanceiro,
       performanceMaquinas,
