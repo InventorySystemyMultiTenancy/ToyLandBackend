@@ -274,6 +274,162 @@ export const dashboardRelatorio = async (req, res) => {
       valorProduto = totalQtd > 0 ? totalValor / totalQtd : 0;
     }
 
+    // --- DETALHAMENTO POR MÁQUINA ---
+    // Buscar todas as máquinas da loja
+    const maquinas = await Maquina.findAll({
+      where: whereMaquina,
+      attributes: ["id", "nome", "codigo"],
+      raw: true,
+    });
+
+    // Para cada máquina, calcular totais e listas detalhadas
+    const maquinasDetalhadas = await Promise.all(
+      maquinas.map(async (maq) => {
+        // Dinheiro/Pix por máquina
+        const registrosMaq = await RegistroDinheiro.findAll({
+          where: {
+            ...whereDinheiro,
+            maquinaId: maq.id,
+          },
+        });
+        const dinheiro = registrosMaq.reduce(
+          (sum, r) => sum + parseFloat(r.valorDinheiro || 0),
+          0,
+        );
+        const pix = registrosMaq.reduce(
+          (sum, r) => sum + parseFloat(r.valorCartaoPix || 0),
+          0,
+        );
+
+        // Movimentações da máquina
+        const movs = await Movimentacao.findAll({
+          where: { ...whereMovimentacao, maquinaId: maq.id },
+          attributes: ["id", "sairam", "abastecidas"],
+        });
+        const movimentacoes = movs.length;
+        const produtosSairam = await MovimentacaoProduto.findAll({
+          attributes: [
+            [col("produto.id"), "id"],
+            [col("produto.nome"), "nome"],
+            [col("produto.codigo"), "codigo"],
+            [col("produto.emoji"), "emoji"],
+            [fn("SUM", col("quantidadesaiu")), "quantidade"],
+          ],
+          include: [
+            { model: Produto, as: "produto", attributes: [] },
+            {
+              model: Movimentacao,
+              attributes: [],
+              where: { ...whereMovimentacao, maquinaId: maq.id },
+            },
+          ],
+          group: [
+            "produto.id",
+            "produto.nome",
+            "produto.codigo",
+            "produto.emoji",
+          ],
+          raw: true,
+        });
+        const produtosEntraram = await MovimentacaoProduto.findAll({
+          attributes: [
+            [col("produto.id"), "id"],
+            [col("produto.nome"), "nome"],
+            [col("produto.codigo"), "codigo"],
+            [col("produto.emoji"), "emoji"],
+            [fn("SUM", col("quantidadeabastecida")), "quantidade"],
+          ],
+          include: [
+            { model: Produto, as: "produto", attributes: [] },
+            {
+              model: Movimentacao,
+              attributes: [],
+              where: { ...whereMovimentacao, maquinaId: maq.id },
+            },
+          ],
+          group: [
+            "produto.id",
+            "produto.nome",
+            "produto.codigo",
+            "produto.emoji",
+          ],
+          raw: true,
+        });
+        // Totais
+        const totalProdutosSairam = produtosSairam.reduce(
+          (sum, p) => sum + Number(p.quantidade || 0),
+          0,
+        );
+        const totalProdutosEntraram = produtosEntraram.reduce(
+          (sum, p) => sum + Number(p.quantidade || 0),
+          0,
+        );
+        // Lucro: dinheiro + pix - custo dos produtos que saíram (usando custoUnitario do produto)
+        let custoProdutos = 0;
+        for (const p of produtosSairam) {
+          const prod = await Produto.findByPk(p.id);
+          if (prod && prod.custoUnitario) {
+            custoProdutos +=
+              Number(prod.custoUnitario) * Number(p.quantidade || 0);
+          }
+        }
+        const lucro = dinheiro + pix - custoProdutos;
+        return {
+          maquina: maq,
+          totais: {
+            dinheiro,
+            pix,
+            lucro,
+            produtosSairam: totalProdutosSairam,
+            produtosEntraram: totalProdutosEntraram,
+            movimentacoes,
+          },
+          produtosSairam,
+          produtosEntraram,
+        };
+      }),
+    );
+
+    // Consolidado geral de produtos (todas máquinas)
+    const produtosSairamGeral = await MovimentacaoProduto.findAll({
+      attributes: [
+        [col("produto.id"), "id"],
+        [col("produto.nome"), "nome"],
+        [col("produto.codigo"), "codigo"],
+        [col("produto.emoji"), "emoji"],
+        [fn("SUM", col("quantidadesaiu")), "quantidade"],
+      ],
+      include: [
+        { model: Produto, as: "produto", attributes: [] },
+        {
+          model: Movimentacao,
+          attributes: [],
+          where: whereMovimentacao,
+        },
+      ],
+      group: ["produto.id", "produto.nome", "produto.codigo", "produto.emoji"],
+      raw: true,
+    });
+    const produtosEntraramGeral = await MovimentacaoProduto.findAll({
+      attributes: [
+        [col("produto.id"), "id"],
+        [col("produto.nome"), "nome"],
+        [col("produto.codigo"), "codigo"],
+        [col("produto.emoji"), "emoji"],
+        [fn("SUM", col("quantidadeabastecida")), "quantidade"],
+      ],
+      include: [
+        { model: Produto, as: "produto", attributes: [] },
+        {
+          model: Movimentacao,
+          attributes: [],
+          where: whereMovimentacao,
+        },
+      ],
+      group: ["produto.id", "produto.nome", "produto.codigo", "produto.emoji"],
+      raw: true,
+    });
+
     // --- RESPOSTA FINAL ---
     res.json({
       totais: {
@@ -288,6 +444,9 @@ export const dashboardRelatorio = async (req, res) => {
       graficoFinanceiro,
       performanceMaquinas,
       rankingProdutos,
+      maquinas: maquinasDetalhadas,
+      produtosSairam: produtosSairamGeral,
+      produtosEntraram: produtosEntraramGeral,
     });
   } catch (error) {
     console.error("Erro Crítico no Dashboard:", error);
