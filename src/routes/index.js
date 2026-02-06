@@ -29,3 +29,5 @@ router.use("/admin", adminRoutes);
 router.use("/estoque-lojas", estoqueLojaRoutes);
 
 router.use("/registro-dinheiro", registroDinheiroRoutes);
+
+export default router;
