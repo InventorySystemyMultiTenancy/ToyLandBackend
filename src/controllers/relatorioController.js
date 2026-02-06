@@ -1,5 +1,6 @@
 // Dashboard agregador via SQL
 import { Sequelize, Op, fn, col } from "sequelize";
+import RegistroDinheiro from "../models/RegistroDinheiro.js";
 
 export const dashboardRelatorio = async (req, res) => {
   try {
@@ -31,13 +32,12 @@ export const dashboardRelatorio = async (req, res) => {
     }
 
     // --- QUERY 1: TOTAIS GERAIS ---
+    // Faturamento, saídas, fichas ainda vêm de Movimentacao, mas dinheiro/pix vêm de RegistroDinheiro
     const totaisRaw = await Movimentacao.findOne({
       attributes: [
         [fn("SUM", col("valorfaturado")), "faturamento"],
         [fn("SUM", col("sairam")), "saidas"],
         [fn("SUM", col("fichas")), "fichas"],
-        [fn("SUM", col("quantidade_notas_entrada")), "dinheiro"],
-        [fn("SUM", col("valor_entrada_maquininha_pix")), "pix"],
       ],
       include: [
         {
@@ -53,9 +53,30 @@ export const dashboardRelatorio = async (req, res) => {
 
     const faturamento = parseFloat(totaisRaw?.faturamento || 0);
     const saidas = parseInt(totaisRaw?.saidas || 0);
-    const dinheiro = parseFloat(totaisRaw?.dinheiro || 0);
-    const pix = parseFloat(totaisRaw?.pix || 0);
     const fichas = parseInt(totaisRaw?.fichas || 0);
+
+    // Buscar dinheiro/pix de RegistroDinheiro (por máquina)
+    const whereDinheiro = {
+      lojaId: lojaId || { [Op.ne]: null },
+      inicio: { [Op.lte]: fim },
+      fim: { [Op.gte]: inicio },
+    };
+    if (lojaId) whereDinheiro.lojaId = lojaId;
+    // Se empresaId estiver disponível nas máquinas, pode-se filtrar por máquinas da empresa
+    // Somar apenas registros por máquina (maquinaId != null)
+    whereDinheiro.maquinaId = { [Op.ne]: null };
+
+    const registrosDinheiro = await RegistroDinheiro.findAll({
+      where: whereDinheiro,
+    });
+    const dinheiro = registrosDinheiro.reduce(
+      (sum, r) => sum + parseFloat(r.valorDinheiro || 0),
+      0,
+    );
+    const pix = registrosDinheiro.reduce(
+      (sum, r) => sum + parseFloat(r.valorCartaoPix || 0),
+      0,
+    );
 
     // --- QUERY 2: CUSTO TOTAL (estimativa via produtos abastecidos) ---
     const custoRaw = await MovimentacaoProduto.findOne({
@@ -93,6 +114,7 @@ export const dashboardRelatorio = async (req, res) => {
     const lucro = faturamento - custo;
 
     // --- QUERY 3: GRÁFICO FINANCEIRO (Timeline por dia) ---
+    // Buscar timeline de faturamento (Movimentacao) e timeline de dinheiro/pix (RegistroDinheiro)
     const timelineRaw = await Movimentacao.findAll({
       attributes: [
         [fn("DATE", col("dataColeta")), "data"],
@@ -111,6 +133,51 @@ export const dashboardRelatorio = async (req, res) => {
       order: [[fn("DATE", col("dataColeta")), "ASC"]],
       raw: true,
     });
+
+    // Buscar timeline de dinheiro/pix por dia em RegistroDinheiro
+    const registrosDinheiroTimeline = await RegistroDinheiro.findAll({
+      attributes: [
+        [fn("DATE", col("inicio")), "data"],
+        [fn("SUM", col("valorDinheiro")), "dinheiro"],
+        [fn("SUM", col("valorCartaoPix")), "pix"],
+      ],
+      where: {
+        ...whereDinheiro,
+        // Agrupar por dia de inicio
+      },
+      group: [fn("DATE", col("inicio"))],
+      order: [[fn("DATE", col("inicio")), "ASC"]],
+      raw: true,
+    });
+
+    // Unir timelines por data
+    const timelineMap = {};
+    timelineRaw.forEach((t) => {
+      timelineMap[t.data] = {
+        data: t.data,
+        faturamento: parseFloat(t.faturamento || 0),
+        dinheiro: 0,
+        pix: 0,
+        custo: 0,
+      };
+    });
+    registrosDinheiroTimeline.forEach((r) => {
+      if (!timelineMap[r.data]) {
+        timelineMap[r.data] = {
+          data: r.data,
+          faturamento: 0,
+          dinheiro: 0,
+          pix: 0,
+          custo: 0,
+        };
+      }
+      timelineMap[r.data].dinheiro = parseFloat(r.dinheiro || 0);
+      timelineMap[r.data].pix = parseFloat(r.pix || 0);
+    });
+    // Ordenar por data
+    const graficoFinanceiro = Object.values(timelineMap).sort(
+      (a, b) => new Date(a.data) - new Date(b.data),
+    );
 
     // --- QUERY 4: PERFORMANCE POR MÁQUINA ---
     const performanceRaw = await Movimentacao.findAll({
@@ -198,11 +265,7 @@ export const dashboardRelatorio = async (req, res) => {
         dinheiro,
         pix,
       },
-      graficoFinanceiro: timelineRaw.map((t) => ({
-        data: t.data,
-        faturamento: parseFloat(t.faturamento || 0),
-        custo: 0,
-      })),
+      graficoFinanceiro,
       performanceMaquinas,
       rankingProdutos,
     });
