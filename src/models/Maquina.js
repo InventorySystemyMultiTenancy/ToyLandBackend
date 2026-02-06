@@ -40,21 +40,12 @@ const Maquina = sequelize.define(
       comment: "Quantidade máxima que a máquina comporta",
       field: "capacidadepadrao",
     },
-    valorFicha: {
+    valorJogada: {
       type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-      defaultValue: 5.0,
-      comment: "Valor em R$ de cada ficha",
-      field: "valorficha",
-    },
-    fichasNecessarias: {
-      type: DataTypes.INTEGER,
       allowNull: true,
-      field: "fichas_necessarias",
-      comment: "Quantidade de fichas necessárias para liberar uma jogada",
-      validate: {
-        min: 1,
-      },
+      defaultValue: 0,
+      comment: "Valor em R$ de cada jogada",
+      field: "valorjogada",
     },
     forcaForte: {
       type: DataTypes.INTEGER,
