@@ -28,6 +28,9 @@ router.use("/relatorios", relatorioRoutes);
 router.use("/admin", adminRoutes);
 router.use("/estoque-lojas", estoqueLojaRoutes);
 
+// Rota para movimentação de estoque de loja (compatível com frontend)
+router.use("/movimentacao-estoque-loja", movimentacaoEstoqueLojaRoutes);
+
 router.use("/registro-dinheiro", registroDinheiroRoutes);
 
 export default router;
